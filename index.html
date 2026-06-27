@@ -3,1252 +3,1355 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Bill's Image Lab — Build 2 Extract Workflow</title>
+<meta name="theme-color" content="#090f2b" />
+<title>bill's image lab — build 6 wizard</title>
 <style>
   :root {
-    --bg: #0b1024;
-    --bg-2: #111936;
-    --panel: #141d3d;
-    --panel-2: #19244a;
-    --panel-3: #202c59;
-    --line: rgba(255,255,255,.12);
-    --line-strong: rgba(255,255,255,.22);
-    --text: #f3f6ff;
-    --muted: #aeb8d6;
-    --soft: #7e8bb3;
-    --accent: #77b7ff;
-    --accent-2: #b6dcff;
-    --good: #77f2b3;
-    --warn: #ffd36e;
-    --danger: #ff7777;
-    --shadow: 0 20px 60px rgba(0,0,0,.35);
-    --radius: 18px;
-    --rail: 76px;
-    --panel-width: 342px;
-    --mobile-bar: 76px;
-    --drawer-height: 46dvh;
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --bg:#090f2b;
+    --bg2:#0d1434;
+    --panel:#111a3f;
+    --panel2:#162152;
+    --panel3:#1b285d;
+    --ink:#f7f9ff;
+    --muted:#aeb9dd;
+    --soft:#7784ad;
+    --line:rgba(255,255,255,.14);
+    --line2:rgba(255,255,255,.24);
+    --accent:#75d7ff;
+    --accent2:#b983ff;
+    --good:#7dffa8;
+    --warn:#ffd36e;
+    --danger:#ff7d7d;
+    --shadow:0 24px 70px rgba(0,0,0,.38);
+    --radius:22px;
+    --rail:76px;
+    --panelWidth:360px;
+    --mobileBar:76px;
+    --drawerHeight:48dvh;
+    --safeBottom:env(safe-area-inset-bottom,0px);
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing:border-box; }
 
   html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: radial-gradient(circle at top, #152153 0, var(--bg) 48%, #070b19 100%);
-    color: var(--text);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    width:100%;
+    height:100%;
+    margin:0;
+    overflow:hidden;
+    background:radial-gradient(circle at top left,#182663 0,#090f2b 42%,#050817 100%);
+    color:var(--ink);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   }
 
-  button, input, select { font: inherit; }
+  button, input, select { font:inherit; }
 
   button {
-    color: inherit;
-    border: 0;
-    cursor: pointer;
+    color:inherit;
+    border:0;
+    cursor:pointer;
   }
 
   .app {
-    width: 100%;
-    height: 100dvh;
-    display: grid;
-    grid-template-columns: var(--rail) minmax(0, 1fr) var(--panel-width);
-    grid-template-rows: 1fr;
+    width:100%;
+    height:100dvh;
+    display:grid;
+    grid-template-columns:var(--rail) minmax(0,1fr) var(--panelWidth);
+    grid-template-rows:1fr;
   }
 
   .rail {
-    border-right: 1px solid var(--line);
-    background: rgba(8, 13, 32, .82);
-    backdrop-filter: blur(18px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 14px 10px;
-    gap: 12px;
-    z-index: 10;
+    border-right:1px solid var(--line);
+    background:rgba(5,8,23,.78);
+    backdrop-filter:blur(16px);
+    padding:14px 10px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    z-index:10;
   }
 
   .brand {
-    width: 52px;
-    height: 52px;
-    border-radius: 17px;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(145deg, #203064, #111935);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 12px 28px rgba(0,0,0,.24);
-    font-weight: 900;
-    letter-spacing: -.04em;
-    color: var(--accent-2);
+    width:52px;
+    height:52px;
+    border-radius:17px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,rgba(117,215,255,.26),rgba(185,131,255,.22));
+    border:1px solid rgba(117,215,255,.34);
+    box-shadow:0 0 28px rgba(117,215,255,.14), inset 0 1px 0 rgba(255,255,255,.16);
+    font-weight:950;
+    letter-spacing:-.05em;
+    color:#dff5ff;
   }
 
-  .studio-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    align-items: center;
+  .studioBtns {
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    align-items:center;
   }
 
-  .studio-btn {
-    width: 56px;
-    height: 58px;
-    border-radius: 18px;
-    display: grid;
-    place-items: center;
-    background: transparent;
-    border: 1px solid transparent;
-    position: relative;
-    transition: transform .16s ease, background .16s ease, border-color .16s ease;
+  .studioBtn {
+    width:56px;
+    height:58px;
+    border-radius:18px;
+    background:rgba(255,255,255,.04);
+    border:1px solid transparent;
+    display:grid;
+    place-items:center;
+    position:relative;
+    transition:.16s ease;
   }
 
-  .studio-btn:hover { background: rgba(255,255,255,.07); }
-
-  .studio-btn.active {
-    background: linear-gradient(150deg, rgba(119,183,255,.24), rgba(255,255,255,.08));
-    border-color: rgba(119,183,255,.45);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+  .studioBtn:hover {
+    background:rgba(255,255,255,.08);
   }
 
-  .studio-btn .icon { font-size: 25px; line-height: 1; }
-
-  .studio-btn .tip {
-    position: absolute;
-    left: 66px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    opacity: 0;
-    white-space: nowrap;
-    background: #080d20;
-    color: var(--text);
-    border: 1px solid var(--line-strong);
-    border-radius: 12px;
-    padding: 8px 10px;
-    font-size: 13px;
-    box-shadow: var(--shadow);
-    transition: opacity .12s ease;
+  .studioBtn.active {
+    background:linear-gradient(135deg,rgba(117,215,255,.20),rgba(185,131,255,.14));
+    border-color:rgba(117,215,255,.42);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
   }
 
-  .studio-btn:hover .tip { opacity: 1; }
-
-  .rail-footer {
-    margin-top: auto;
-    display: grid;
-    gap: 10px;
+  .studioIcon {
+    width:32px;
+    height:32px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.12);
+    color:#e8edf9;
+    filter:grayscale(1);
+    font-size:18px;
+    text-shadow:0 1px 0 rgba(0,0,0,.45);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.12), inset 0 -3px 8px rgba(0,0,0,.22);
   }
 
-  .small-rail-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 15px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid var(--line);
-    color: var(--muted);
+  .tip {
+    position:absolute;
+    left:66px;
+    top:50%;
+    transform:translateY(-50%);
+    opacity:0;
+    pointer-events:none;
+    white-space:nowrap;
+    background:#070b1c;
+    border:1px solid var(--line2);
+    border-radius:12px;
+    padding:8px 10px;
+    font-size:13px;
+    box-shadow:var(--shadow);
   }
+
+  .studioBtn:hover .tip { opacity:1; }
 
   .workspace {
-    min-width: 0;
-    display: grid;
-    grid-template-rows: 58px minmax(0, 1fr) 44px;
-    position: relative;
+    min-width:0;
+    display:grid;
+    grid-template-rows:58px minmax(0,1fr) 44px;
+    position:relative;
   }
 
   .topbar {
-    border-bottom: 1px solid var(--line);
-    background: rgba(12, 18, 43, .7);
-    backdrop-filter: blur(18px);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 18px;
-    gap: 12px;
+    border-bottom:1px solid var(--line);
+    background:rgba(5,8,23,.70);
+    backdrop-filter:blur(16px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px;
+    gap:12px;
   }
 
   .title {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
   }
 
   .title strong {
-    font-size: 15px;
-    letter-spacing: .01em;
+    font-size:15px;
+    text-transform:lowercase;
+    letter-spacing:.01em;
   }
 
   .title span {
-    font-size: 12px;
-    color: var(--muted);
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
-  .top-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .topActions {
+    display:flex;
+    gap:8px;
+    align-items:center;
   }
 
-  .pill-btn {
-    border-radius: 999px;
-    padding: 9px 13px;
-    background: rgba(255,255,255,.07);
-    border: 1px solid var(--line);
-    color: var(--text);
-    font-weight: 650;
-    font-size: 13px;
+  .pill {
+    border-radius:999px;
+    min-height:38px;
+    padding:8px 13px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.07);
+    color:var(--ink);
+    font-weight:750;
+    font-size:13px;
   }
 
-  .pill-btn.primary {
-    background: linear-gradient(145deg, rgba(119,183,255,.9), rgba(182,220,255,.82));
-    color: #071025;
-    border-color: transparent;
+  .pill.primary {
+    background:linear-gradient(135deg,rgba(117,215,255,.92),rgba(185,131,255,.72));
+    color:#071025;
+    border-color:transparent;
   }
 
-  .canvas-stage {
-    min-width: 0;
-    min-height: 0;
-    position: relative;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    overflow: hidden;
+  .canvasStage {
+    min-width:0;
+    min-height:0;
+    position:relative;
+    display:grid;
+    place-items:center;
+    padding:24px;
+    overflow:hidden;
   }
 
-  .checker-wrap {
-    width: min(82%, 980px);
-    height: min(76%, 650px);
-    min-height: 280px;
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,.16);
+  .checker {
+    width:min(82%,980px);
+    height:min(76%,650px);
+    min-height:280px;
+    border-radius:24px;
+    border:1px solid rgba(255,255,255,.16);
     background:
-      linear-gradient(45deg, rgba(255,255,255,.06) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(255,255,255,.06) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgba(255,255,255,.06) 75%),
-      linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.06) 75%);
-    background-size: 28px 28px;
-    background-position: 0 0, 0 14px, 14px -14px, -14px 0;
-    background-color: rgba(255,255,255,.03);
-    box-shadow: 0 30px 80px rgba(0,0,0,.36);
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    position: relative;
+      linear-gradient(45deg,rgba(255,255,255,.07) 25%,transparent 25%),
+      linear-gradient(-45deg,rgba(255,255,255,.07) 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,rgba(255,255,255,.07) 75%),
+      linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.07) 75%);
+    background-size:28px 28px;
+    background-position:0 0,0 14px,14px -14px,-14px 0;
+    background-color:rgba(255,255,255,.025);
+    box-shadow:var(--shadow);
+    display:grid;
+    place-items:center;
+    overflow:hidden;
   }
 
-  .canvas-card {
-    width: min(70%, 560px);
-    aspect-ratio: 4 / 3;
-    border-radius: 18px;
-    background: linear-gradient(145deg, #f8fbff, #dfe7f6);
-    color: #1a2747;
-    display: grid;
-    place-items: center;
-    text-align: center;
-    padding: 26px;
-    box-shadow: 0 26px 70px rgba(0,0,0,.32);
-    position: relative;
-    overflow: hidden;
+  .canvasCard {
+    width:min(70%,560px);
+    aspect-ratio:4/3;
+    border-radius:18px;
+    background:linear-gradient(145deg,#f8fbff,#dfe7f6);
+    color:#1a2747;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    padding:26px;
+    box-shadow:0 26px 70px rgba(0,0,0,.32);
+    position:relative;
+    overflow:hidden;
   }
 
-  .canvas-card canvas {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: none;
+  .canvasCard.hasImage {
+    width:82%;
+    height:82%;
+    aspect-ratio:auto;
+    background:transparent;
+    box-shadow:none;
+    padding:0;
   }
 
-  .canvas-card.has-image {
-    background: transparent;
-    box-shadow: none;
-    width: 82%;
-    height: 82%;
-    aspect-ratio: auto;
-    padding: 0;
+  canvas {
+    max-width:100%;
+    max-height:100%;
+    display:none;
+    touch-action:none;
+    image-rendering:auto;
   }
 
-  .canvas-card.has-image canvas { display: block; }
+  .canvasCard.hasImage canvas { display:block; }
 
-  .canvas-card.has-image .empty-state { display: none; }
-
-  .canvas-card.wand-active {
-    outline: 3px solid rgba(119,183,255,.72);
-    outline-offset: 8px;
-    cursor: crosshair;
+  .canvasCard.wandActive {
+    outline:3px solid rgba(117,215,255,.68);
+    outline-offset:8px;
+    cursor:crosshair;
   }
 
-  .empty-state h1 {
-    margin: 0 0 8px;
-    font-size: clamp(24px, 4vw, 42px);
-    letter-spacing: -.04em;
+  .canvasCard.paintActive {
+    outline:3px solid rgba(125,255,168,.68);
+    outline-offset:8px;
+    cursor:none;
   }
 
-  .empty-state p {
-    margin: 0 auto 18px;
-    color: #435070;
-    max-width: 420px;
+  .empty h1 {
+    margin:0 0 8px;
+    font-size:clamp(24px,4vw,42px);
+    letter-spacing:-.05em;
   }
 
-  .statusbar {
-    border-top: 1px solid var(--line);
-    background: rgba(8, 13, 32, .68);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    font-size: 12px;
+  .empty p {
+    margin:0 auto 18px;
+    color:#435070;
+    max-width:430px;
+    line-height:1.35;
+  }
+
+  .canvasCard.hasImage .empty { display:none; }
+
+  .canvasControls {
+    position:absolute;
+    right:26px;
+    bottom:20px;
+    z-index:7;
+    display:flex;
+    gap:8px;
+    padding:8px;
+    border-radius:18px;
+    border:1px solid var(--line2);
+    background:rgba(5,8,23,.82);
+    backdrop-filter:blur(14px);
+    box-shadow:0 16px 38px rgba(0,0,0,.30);
+  }
+
+  .miniBtn {
+    min-width:54px;
+    height:48px;
+    border-radius:14px;
+    background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.045));
+    border:1px solid var(--line);
+    display:grid;
+    place-items:center;
+    font-weight:900;
+    font-size:18px;
+  }
+
+  .miniBtn span {
+    display:block;
+    font-size:10px;
+    color:var(--muted);
+    line-height:1;
+    font-weight:800;
+  }
+
+  .zoomSelect {
+    height:48px;
+    border-radius:14px;
+    background:rgba(255,255,255,.07);
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:0 10px;
+    font-weight:850;
+  }
+
+  .status {
+    border-top:1px solid var(--line);
+    background:rgba(5,8,23,.62);
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px;
+    font-size:12px;
   }
 
   .panel {
-    min-width: 0;
-    border-left: 1px solid var(--line);
-    background: rgba(14, 22, 50, .86);
-    backdrop-filter: blur(18px);
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    z-index: 8;
+    min-width:0;
+    border-left:1px solid var(--line);
+    background:rgba(17,26,63,.84);
+    backdrop-filter:blur(16px);
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr);
+    z-index:8;
   }
 
-  .panel-head {
-    padding: 18px;
-    border-bottom: 1px solid var(--line);
+  .panelHead {
+    padding:18px;
+    border-bottom:1px solid var(--line);
   }
 
-  .panel-head .eyebrow {
-    color: var(--accent-2);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .13em;
-    font-weight: 800;
+  .eyebrow {
+    color:var(--accent);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    font-weight:900;
   }
 
-  .panel-head h2 {
-    margin: 5px 0 4px;
-    font-size: 24px;
-    letter-spacing: -.04em;
+  .panelHead h2 {
+    margin:5px 0 4px;
+    font-size:24px;
+    letter-spacing:-.045em;
   }
 
-  .panel-head p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.35;
+  .panelHead p {
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
   }
 
-  .panel-body {
-    overflow: auto;
-    padding: 16px;
+  .panelBody {
+    overflow:auto;
+    padding:16px;
   }
 
-  .tool-group {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: rgba(255,255,255,.045);
-    padding: 14px;
-    margin-bottom: 14px;
+  .stepCard {
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.055);
+    border-radius:20px;
+    padding:14px;
+    margin-bottom:14px;
   }
 
-  .tool-group h3 {
-    margin: 0 0 11px;
-    font-size: 14px;
+  .stepCard.active {
+    border-color:rgba(117,215,255,.42);
+    background:linear-gradient(135deg,rgba(117,215,255,.13),rgba(255,255,255,.045));
   }
 
-  .tool-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
+  .stepCard.done {
+    border-color:rgba(125,255,168,.30);
   }
 
-  .tool-btn {
-    min-height: 48px;
-    border-radius: 14px;
-    background: rgba(255,255,255,.07);
-    border: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    font-weight: 700;
-    font-size: 13px;
+  .stepTitle {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+    font-size:15px;
+    font-weight:900;
   }
 
-  .tool-btn.full { grid-column: 1 / -1; }
-
-  .tool-btn.active {
-    background: linear-gradient(150deg, rgba(119,183,255,.25), rgba(255,255,255,.08));
-    border-color: rgba(119,183,255,.55);
+  .stepNum {
+    width:26px;
+    height:26px;
+    border-radius:999px;
+    display:grid;
+    place-items:center;
+    background:rgba(255,255,255,.10);
+    border:1px solid var(--line);
+    color:var(--accent);
+    font-size:12px;
   }
 
-  .tool-btn.disabled {
-    opacity: .46;
-    cursor: not-allowed;
+  .toolGrid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
   }
 
-  .slider-row,
-  .field-row {
-    display: grid;
-    gap: 7px;
-    margin-top: 10px;
+  .toolBtn {
+    min-height:50px;
+    border-radius:15px;
+    background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.045));
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-weight:850;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:7px;
+    text-align:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
   }
 
-  .slider-row label,
-  .field-row label {
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
+  .toolBtn.full { grid-column:1 / -1; }
+
+  .toolBtn.primary {
+    background:linear-gradient(135deg,rgba(117,215,255,.28),rgba(185,131,255,.18));
+    border-color:rgba(117,215,255,.45);
   }
 
-  input[type="range"] { width: 100%; }
+  .toolBtn.active {
+    border-color:rgba(125,255,168,.48);
+    background:linear-gradient(135deg,rgba(125,255,168,.20),rgba(255,255,255,.06));
+  }
 
-  .field {
-    width: 100%;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: rgba(0,0,0,.22);
-    color: var(--text);
-    padding: 11px 12px;
-    outline: none;
+  .toolBtn.disabled {
+    opacity:.45;
+    cursor:not-allowed;
   }
 
   .hint {
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.35;
+    margin-top:10px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.35;
   }
 
-  .hidden-file {
-    position: fixed;
-    left: -1000px;
-    top: -1000px;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
+  .sliderRow {
+    display:grid;
+    gap:7px;
+    margin-top:12px;
   }
 
-  .mobile-studio-bar,
-  .mobile-drawer { display: none; }
-
-  .close-drawer { display: none; }
-
-  .resize-handle {
-    position: absolute;
-    right: calc(var(--panel-width) - 6px);
-    top: 58px;
-    bottom: 44px;
-    width: 12px;
-    cursor: col-resize;
-    z-index: 9;
+  .sliderRow label {
+    color:var(--muted);
+    font-size:12px;
+    font-weight:800;
   }
 
-  .resize-handle::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    right: 4px;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 44px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.14);
+  input[type=range] { width:100%; }
+
+  .hiddenFile {
+    position:fixed;
+    left:-1000px;
+    top:-1000px;
+    width:1px;
+    height:1px;
+    opacity:.01;
+  }
+
+  .mobileBar, .mobileDrawer { display:none; }
+
+  .closeDrawer { display:none; }
+
+  .resizeHandle {
+    position:absolute;
+    right:calc(var(--panelWidth) - 6px);
+    top:58px;
+    bottom:44px;
+    width:12px;
+    cursor:col-resize;
+    z-index:9;
+  }
+
+  .resizeHandle::after {
+    content:"";
+    position:absolute;
+    top:50%;
+    right:4px;
+    transform:translateY(-50%);
+    width:4px;
+    height:44px;
+    border-radius:999px;
+    background:rgba(255,255,255,.14);
   }
 
   body.resizing {
-    user-select: none;
-    cursor: col-resize;
+    user-select:none;
+    cursor:col-resize;
   }
 
-  @media (max-width: 820px) {
-    :root { --drawer-height: 46dvh; }
-
+  @media (max-width:820px) {
     .app {
-      grid-template-columns: 1fr;
-      grid-template-rows: minmax(0, 1fr) calc(var(--mobile-bar) + var(--safe-bottom));
+      grid-template-columns:1fr;
+      grid-template-rows:minmax(0,1fr) calc(var(--mobileBar) + var(--safeBottom));
     }
 
-    .rail,
-    .panel,
-    .resize-handle { display: none; }
+    .rail, .panel, .resizeHandle { display:none; }
 
     .workspace {
-      grid-template-rows: 52px minmax(0, 1fr) 34px;
-      min-height: 0;
+      grid-template-rows:52px minmax(0,1fr) 34px;
+      min-height:0;
     }
 
-    .topbar { padding: 0 12px; }
+    .topbar { padding:0 12px; }
 
-    .title strong { font-size: 14px; }
+    .title strong { font-size:14px; }
 
-    .title span { display: none; }
+    .title span { display:none; }
 
-    .top-actions .pill-btn:not(.primary) { display: none; }
+    .topActions .pill:not(.primary) { display:none; }
 
-    .canvas-stage {
-      padding: 14px;
-      transition: padding-bottom .22s ease;
+    .canvasStage {
+      padding:14px;
+      transition:padding-bottom .22s ease;
     }
 
-    .checker-wrap {
-      width: 100%;
-      height: 100%;
-      min-height: 0;
-      border-radius: 18px;
-      transition: transform .22s ease;
+    .checker {
+      width:100%;
+      height:100%;
+      min-height:0;
+      border-radius:18px;
+      transition:transform .22s ease;
     }
 
-    .canvas-card {
-      width: 78%;
-      transition: transform .22s ease, width .22s ease;
+    .canvasCard {
+      width:78%;
+      transition:transform .22s ease,width .22s ease;
     }
 
-    .app.drawer-open .canvas-stage {
-      padding-bottom: calc(var(--drawer-height) + 24px);
+    .app.drawerOpen .canvasStage {
+      padding-bottom:calc(var(--drawerHeight) + 24px);
     }
 
-    .app.drawer-open .checker-wrap {
-      transform: scale(.98);
+    .app.drawerOpen .checker {
+      transform:scale(.98);
     }
 
-    .app.drawer-open .canvas-card {
-      width: 72%;
-      transform: scale(.94);
+    .app.drawerOpen .canvasCard {
+      width:72%;
+      transform:scale(.94);
     }
 
-    .statusbar {
-      padding: 0 12px;
-      font-size: 11px;
+    .canvasControls {
+      right:12px;
+      bottom:10px;
+      padding:6px;
+      border-radius:16px;
     }
 
-    .mobile-studio-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      padding: 8px 10px calc(8px + var(--safe-bottom));
-      border-top: 1px solid var(--line);
-      background: rgba(8, 13, 32, .94);
-      backdrop-filter: blur(18px);
-      z-index: 20;
+    .miniBtn {
+      min-width:46px;
+      height:42px;
+      font-size:16px;
     }
 
-    .mobile-studio-btn {
-      height: 58px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.055);
-      border: 1px solid var(--line);
-      display: grid;
-      place-items: center;
-      gap: 1px;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 800;
+    .zoomSelect {
+      height:42px;
+      max-width:82px;
     }
 
-    .mobile-studio-btn .icon {
-      font-size: 22px;
-      line-height: 1;
+    .status {
+      padding:0 12px;
+      font-size:11px;
     }
 
-    .mobile-studio-btn.active {
-      color: var(--text);
-      background: linear-gradient(150deg, rgba(119,183,255,.22), rgba(255,255,255,.08));
-      border-color: rgba(119,183,255,.46);
+    .mobileBar {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      padding:8px 10px calc(8px + var(--safeBottom));
+      border-top:1px solid var(--line);
+      background:rgba(5,8,23,.94);
+      backdrop-filter:blur(16px);
+      z-index:20;
     }
 
-    .mobile-drawer {
-      display: block;
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: calc(var(--mobile-bar) + var(--safe-bottom));
-      max-height: var(--drawer-height);
-      transform: translateY(calc(100% + var(--mobile-bar)));
-      transition: transform .22s ease;
-      background: rgba(14, 22, 50, .93);
-      border-top: 1px solid var(--line-strong);
-      border-radius: 24px 24px 0 0;
-      z-index: 18;
-      box-shadow: 0 -26px 70px rgba(0,0,0,.42);
-      overflow: hidden;
+    .mobileStudioBtn {
+      height:58px;
+      border-radius:18px;
+      background:rgba(255,255,255,.055);
+      border:1px solid var(--line);
+      display:grid;
+      place-items:center;
+      gap:1px;
+      font-size:11px;
+      color:var(--muted);
+      font-weight:850;
     }
 
-    .mobile-drawer.open { transform: translateY(0); }
-
-    .drawer-grab {
-      width: 48px;
-      height: 5px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.22);
-      margin: 9px auto 2px;
+    .mobileStudioBtn.active {
+      color:var(--ink);
+      border-color:rgba(117,215,255,.46);
+      background:linear-gradient(135deg,rgba(117,215,255,.20),rgba(185,131,255,.12));
     }
 
-    .mobile-drawer .panel-head {
-      padding: 10px 16px 14px;
-      position: relative;
+    .mobileStudioBtn .studioIcon {
+      width:30px;
+      height:30px;
+      font-size:17px;
     }
 
-    .mobile-drawer .panel-head h2 { font-size: 21px; }
-
-    .mobile-drawer .panel-body {
-      max-height: calc(var(--drawer-height) - 98px);
-      padding: 14px;
+    .mobileDrawer {
+      display:block;
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:calc(var(--mobileBar) + var(--safeBottom));
+      max-height:var(--drawerHeight);
+      transform:translateY(calc(100% + var(--mobileBar)));
+      transition:transform .22s ease;
+      background:rgba(17,26,63,.94);
+      border-top:1px solid var(--line2);
+      border-radius:24px 24px 0 0;
+      z-index:18;
+      box-shadow:0 -26px 70px rgba(0,0,0,.42);
+      overflow:hidden;
     }
 
-    .close-drawer {
-      display: grid;
-      place-items: center;
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 38px;
-      height: 38px;
-      border-radius: 13px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid var(--line);
-      color: var(--text);
+    .mobileDrawer.open { transform:translateY(0); }
+
+    .grab {
+      width:48px;
+      height:5px;
+      border-radius:999px;
+      background:rgba(255,255,255,.24);
+      margin:9px auto 2px;
+    }
+
+    .mobileDrawer .panelHead {
+      padding:10px 16px 14px;
+      position:relative;
+    }
+
+    .mobileDrawer .panelHead h2 { font-size:21px; }
+
+    .mobileDrawer .panelBody {
+      max-height:calc(var(--drawerHeight) - 98px);
+      padding:14px;
+    }
+
+    .closeDrawer {
+      display:grid;
+      place-items:center;
+      position:absolute;
+      top:12px;
+      right:12px;
+      width:38px;
+      height:38px;
+      border-radius:13px;
+      background:rgba(255,255,255,.07);
+      border:1px solid var(--line);
     }
   }
 
-  @media (max-width: 430px) {
-    .tool-grid { grid-template-columns: 1fr; }
-    .tool-btn.full { grid-column: auto; }
-    .empty-state h1 { font-size: 25px; }
-    .empty-state p { font-size: 14px; }
+  @media (max-width:430px) {
+    .toolGrid { grid-template-columns:1fr; }
+    .toolBtn.full { grid-column:auto; }
+    .empty h1 { font-size:25px; }
+    .empty p { font-size:14px; }
   }
 </style>
 </head>
 <body>
-  <div class="app" id="app">
-    <aside class="rail" aria-label="Studio navigation">
-      <div class="brand" aria-label="Bill's Image Lab">bil</div>
-      <nav class="studio-buttons" id="desktopStudioButtons"></nav>
-      <div class="rail-footer">
-        <button class="small-rail-btn" title="Undo" id="undoBtn">↶</button>
-        <button class="small-rail-btn" title="Redo" id="redoBtn">↷</button>
+<div class="app" id="app">
+  <aside class="rail">
+    <div class="brand">bil</div>
+    <nav class="studioBtns" id="desktopStudios"></nav>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div class="title">
+        <strong>bill's image lab</strong>
+        <span id="taskLine">Extract Studio: guided background removal workflow.</span>
       </div>
-    </aside>
+      <div class="topActions">
+        <button class="pill" id="clearBtn">Clear</button>
+        <button class="pill primary" id="importTopBtn">Import Image</button>
+      </div>
+    </header>
 
-    <main class="workspace">
-      <header class="topbar">
-        <div class="title">
-          <strong>bill's image lab</strong>
-          <span id="taskLine">Choose a Studio, then work around the canvas.</span>
-        </div>
-        <div class="top-actions">
-          <button class="pill-btn" id="fitBtn">Fit</button>
-          <button class="pill-btn" id="clearBtn">Clear</button>
-          <button class="pill-btn primary" id="uploadTopBtn">Import Image</button>
-        </div>
-      </header>
-
-      <section class="canvas-stage" aria-label="Canvas workspace">
-        <div class="checker-wrap" id="canvasWrap">
-          <div class="canvas-card" id="canvasCard">
-            <canvas id="editCanvas"></canvas>
-            <div class="empty-state">
-              <h1>Canvas stays here.</h1>
-              <p>Build 2 now has the first Extract workflow. Import an image, choose Magic Wand, tap the background, then remove it.</p>
-              <button class="pill-btn primary" id="uploadCanvasBtn">Import Image</button>
-            </div>
+    <section class="canvasStage">
+      <div class="checker">
+        <div class="canvasCard" id="canvasCard">
+          <canvas id="canvas"></canvas>
+          <div class="empty">
+            <h1>Start with an image.</h1>
+            <p>Build 6 guides the Extract workflow: import, quick remove, magic wand, cleanup, export.</p>
+            <button class="pill primary" id="importCanvasBtn">Import Image</button>
           </div>
         </div>
-      </section>
+      </div>
 
-      <footer class="statusbar">
-        <span id="statusStudio">Extract Studio ready</span>
-        <span id="statusCanvas">No image loaded</span>
-      </footer>
-    </main>
-
-    <div class="resize-handle" id="resizeHandle" title="Resize panel"></div>
-
-    <aside class="panel" id="desktopPanel" aria-label="Studio tools"></aside>
-
-    <nav class="mobile-studio-bar" id="mobileStudioButtons" aria-label="Mobile Studio navigation"></nav>
-
-    <section class="mobile-drawer" id="mobileDrawer" aria-label="Mobile Studio drawer">
-      <div class="drawer-grab"></div>
-      <div id="mobilePanel"></div>
+      <div class="canvasControls">
+        <button class="miniBtn" id="undoCanvasBtn">↶<span>Undo</span></button>
+        <button class="miniBtn" id="redoCanvasBtn">↷<span>Redo</span></button>
+        <select class="zoomSelect" id="zoomSelect">
+          <option value="1">100%</option>
+          <option value="1.5">150%</option>
+          <option value="2">200%</option>
+          <option value="3">300%</option>
+        </select>
+      </div>
     </section>
-  </div>
 
-  <input class="hidden-file" id="fileInput" type="file" accept="image/*" />
+    <footer class="status">
+      <span id="statusLeft">Extract Studio ready</span>
+      <span id="statusRight">No image loaded</span>
+    </footer>
+  </main>
+
+  <div class="resizeHandle" id="resizeHandle"></div>
+  <aside class="panel" id="desktopPanel"></aside>
+
+  <nav class="mobileBar" id="mobileStudios"></nav>
+
+  <section class="mobileDrawer" id="mobileDrawer">
+    <div class="grab"></div>
+    <div id="mobilePanel"></div>
+  </section>
+</div>
+
+<input class="hiddenFile" id="fileInput" type="file" accept="image/*,.heic,.HEIC,.heif,.HEIF" />
 
 <script>
 (() => {
   const studios = {
-    extract: {
-      icon: "🪄",
-      label: "Extract",
-      eyebrow: "asset extraction",
-      title: "Extract Studio",
-      summary: "Remove backgrounds, crop, resize, and export transparent assets.",
-      status: "Extract Studio ready",
-      body: `
-        <div class="tool-group">
-          <h3>Start here</h3>
-          <div class="tool-grid">
-            <button class="tool-btn full" data-action="import">📥 Import Image</button>
-            <button class="tool-btn" data-action="wand">🪄 Magic Wand</button>
-            <button class="tool-btn" data-action="remove-bg">⬜ Remove BG</button>
-          </div>
-          <div class="hint" id="wandHint">Workflow: Import → Magic Wand → tap the outside background → Remove BG. Without a tap, Remove BG uses the image edges.</div>
-        </div>
-        <div class="tool-group">
-          <h3>Clean up</h3>
-          <div class="tool-grid">
-            <button class="tool-btn disabled">✂️ Crop</button>
-            <button class="tool-btn disabled">↔️ Resize</button>
-          </div>
-          <div class="slider-row">
-            <label for="tolerance">Selection tolerance: <span data-bind="tol">32</span></label>
-            <input id="tolerance" data-action="tolerance" type="range" min="0" max="100" value="32" />
-          </div>
-        </div>
-        <div class="tool-group">
-          <h3>Export</h3>
-          <div class="tool-grid">
-            <button class="tool-btn full" data-action="export-png">⬇️ Transparent PNG</button>
-          </div>
-        </div>
-      `
-    },
-    create: {
-      icon: "✏️",
-      label: "Create",
-      eyebrow: "graphic creation",
-      title: "Create Studio",
-      summary: "Create original graphic elements with text, shapes, color, stroke, and shadow.",
-      status: "Create Studio selected",
-      body: `
-        <div class="tool-group">
-          <h3>Text</h3>
-          <div class="field-row">
-            <label for="textInput">Text content</label>
-            <input class="field" id="textInput" value="bill's image lab" />
-          </div>
-          <div class="tool-grid" style="margin-top:10px;">
-            <button class="tool-btn disabled">T Add Text</button>
-            <button class="tool-btn disabled">Aa Font</button>
-          </div>
-        </div>
-        <div class="tool-group">
-          <h3>Style</h3>
-          <div class="tool-grid">
-            <button class="tool-btn disabled">🎨 Color</button>
-            <button class="tool-btn disabled">▢ Stroke</button>
-            <button class="tool-btn disabled">☁ Shadow</button>
-            <button class="tool-btn disabled">✨ Glow</button>
-          </div>
-        </div>
-      `
-    },
-    compose: {
-      icon: "🧩",
-      label: "Compose",
-      eyebrow: "finished artwork",
-      title: "Compose Studio",
-      summary: "Arrange assets, manage layers, align elements, and prepare the final export.",
-      status: "Compose Studio selected",
-      body: `
-        <div class="tool-group">
-          <h3>Layers</h3>
-          <div class="tool-grid">
-            <button class="tool-btn disabled">⬆ Bring Up</button>
-            <button class="tool-btn disabled">⬇ Send Down</button>
-            <button class="tool-btn disabled">👁 Opacity</button>
-            <button class="tool-btn disabled">🔒 Lock</button>
-          </div>
-        </div>
-        <div class="tool-group">
-          <h3>Arrange</h3>
-          <div class="tool-grid">
-            <button class="tool-btn disabled">↔ Scale</button>
-            <button class="tool-btn disabled">⟳ Rotate</button>
-            <button class="tool-btn disabled">☰ Align</button>
-            <button class="tool-btn disabled">⛓ Group</button>
-          </div>
-        </div>
-      `
-    },
-    effects: {
-      icon: "🎭",
-      label: "Effects",
-      eyebrow: "parking lot",
-      title: "Effects Studio",
-      summary: "Reserved for later. Build 2 keeps advanced effects disabled while the interface is refined.",
-      status: "Effects Studio parked",
-      body: `
-        <div class="tool-group">
-          <h3>Future tools</h3>
-          <div class="tool-grid">
-            <button class="tool-btn disabled">Masks</button>
-            <button class="tool-btn disabled">Blend Modes</button>
-            <button class="tool-btn disabled">Healing</button>
-            <button class="tool-btn disabled">Clone</button>
-            <button class="tool-btn disabled">Perspective</button>
-            <button class="tool-btn disabled">Liquify</button>
-          </div>
-        </div>
-      `
-    }
+    extract: { icon:"🪄", label:"Extract", title:"Extract Studio", summary:"Guided background removal and cleanup." },
+    create: { icon:"✏️", label:"Create", title:"Create Studio", summary:"Text, shapes, colors, shadows, and graphic creation." },
+    compose: { icon:"🧩", label:"Compose", title:"Compose Studio", summary:"Layers, arranging, aligning, and final artwork." },
+    effects: { icon:"🎭", label:"Effects", title:"Effects Studio", summary:"Future parking lot for advanced effects." }
   };
 
   const state = {
-    studio: "extract",
-    drawerOpen: false,
-    imageName: "",
-    imageLoaded: false,
-    wandActive: false,
-    tolerance: 32,
-    sampledColor: null,
-    selection: null,
-    selectionCount: 0,
-    history: [],
-    future: []
+    studio:"extract",
+    imageLoaded:false,
+    imageName:"",
+    original:null,
+    history:[],
+    future:[],
+    tolerance:34,
+    brushSize:18,
+    mode:null,
+    painting:false,
+    selected:null,
+    zoom:1
   };
 
   const app = document.getElementById("app");
-  const desktopButtons = document.getElementById("desktopStudioButtons");
-  const mobileButtons = document.getElementById("mobileStudioButtons");
+  const desktopStudios = document.getElementById("desktopStudios");
+  const mobileStudios = document.getElementById("mobileStudios");
   const desktopPanel = document.getElementById("desktopPanel");
   const mobilePanel = document.getElementById("mobilePanel");
   const mobileDrawer = document.getElementById("mobileDrawer");
   const fileInput = document.getElementById("fileInput");
-  const uploadTopBtn = document.getElementById("uploadTopBtn");
-  const uploadCanvasBtn = document.getElementById("uploadCanvasBtn");
-  const clearBtn = document.getElementById("clearBtn");
-  const fitBtn = document.getElementById("fitBtn");
-  const canvas = document.getElementById("editCanvas");
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently:true });
   const canvasCard = document.getElementById("canvasCard");
-  const statusStudio = document.getElementById("statusStudio");
-  const statusCanvas = document.getElementById("statusCanvas");
+  const statusLeft = document.getElementById("statusLeft");
+  const statusRight = document.getElementById("statusRight");
   const taskLine = document.getElementById("taskLine");
   const resizeHandle = document.getElementById("resizeHandle");
-  const undoBtn = document.getElementById("undoBtn");
-  const redoBtn = document.getElementById("redoBtn");
+  const zoomSelect = document.getElementById("zoomSelect");
 
   function buildStudioButtons() {
-    Object.entries(studios).forEach(([key, studio]) => {
+    Object.entries(studios).forEach(([key, s]) => {
       const d = document.createElement("button");
-      d.className = "studio-btn";
+      d.className = "studioBtn";
       d.dataset.studio = key;
-      d.innerHTML = `<span class="icon">${studio.icon}</span><span class="tip">${studio.title}</span>`;
-      d.setAttribute("aria-label", studio.title);
-      desktopButtons.appendChild(d);
+      d.innerHTML = `<span class="studioIcon">${s.icon}</span><span class="tip">${s.title}</span>`;
+      desktopStudios.appendChild(d);
 
       const m = document.createElement("button");
-      m.className = "mobile-studio-btn";
+      m.className = "mobileStudioBtn";
       m.dataset.studio = key;
-      m.innerHTML = `<span class="icon">${studio.icon}</span><span>${studio.label}</span>`;
-      m.setAttribute("aria-label", studio.title);
-      mobileButtons.appendChild(m);
+      m.innerHTML = `<span class="studioIcon">${s.icon}</span><span>${s.label}</span>`;
+      mobileStudios.appendChild(m);
     });
   }
 
-  function panelTemplate(studio, mobile = false) {
+  function panelTemplate() {
+    const s = studios[state.studio];
+
+    if (state.studio !== "extract") {
+      return `
+        <div class="panelHead">
+          <button class="closeDrawer" data-action="close">×</button>
+          <div class="eyebrow">placeholder</div>
+          <h2>${s.title}</h2>
+          <p>${s.summary}</p>
+        </div>
+        <div class="panelBody">
+          <div class="stepCard active">
+            <div class="stepTitle"><span class="stepNum">•</span> Coming later</div>
+            <div class="hint">Build 6 is focused on Extract Studio only. This keeps the app from becoming a giant toolbox too early.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    const imported = state.imageLoaded ? "done" : "active";
+    const removeActive = state.imageLoaded ? "active" : "";
+    const cleanupActive = state.imageLoaded ? "active" : "";
+    const exportActive = state.imageLoaded ? "active" : "";
+
     return `
-      <div class="panel-head">
-        ${mobile ? `<button class="close-drawer" id="closeDrawerBtn" aria-label="Close drawer">×</button>` : ""}
-        <div class="eyebrow">${studio.eyebrow}</div>
-        <h2>${studio.title}</h2>
-        <p>${studio.summary}</p>
+      <div class="panelHead">
+        <button class="closeDrawer" data-action="close">×</button>
+        <div class="eyebrow">guided extract</div>
+        <h2>Extract Studio</h2>
+        <p>Follow the steps. Start simple, then clean up only if needed.</p>
       </div>
-      <div class="panel-body">${studio.body}</div>
+      <div class="panelBody">
+        <div class="stepCard ${imported}">
+          <div class="stepTitle"><span class="stepNum">1</span> Import image</div>
+          <button class="toolBtn primary full" data-action="import">Import Image</button>
+          <div class="hint">${state.imageLoaded ? state.imageName : "Choose a PNG, JPG, or photo from your device."}</div>
+        </div>
+
+        <div class="stepCard ${removeActive}">
+          <div class="stepTitle"><span class="stepNum">2</span> Remove background</div>
+          <div class="toolGrid">
+            <button class="toolBtn primary full" data-action="quick-remove">Quick Remove Background</button>
+            <button class="toolBtn ${state.mode === "wand" ? "active" : ""}" data-action="wand">Magic Wand</button>
+            <button class="toolBtn" data-action="similar-white">Remove Similar White</button>
+          </div>
+          <div class="sliderRow">
+            <label>Tolerance: <span data-bind="tol">${state.tolerance}</span></label>
+            <input data-action="tolerance" type="range" min="0" max="120" value="${state.tolerance}">
+          </div>
+          <div class="hint">Quick Remove uses the image edges. Magic Wand removes only the connected area you tap. Similar White is for simple cartoon/logo cleanup.</div>
+        </div>
+
+        <div class="stepCard ${cleanupActive}">
+          <div class="stepTitle"><span class="stepNum">3</span> Cleanup</div>
+          <div class="toolGrid">
+            <button class="toolBtn ${state.mode === "restore" ? "active" : ""}" data-action="brush">Brush Back</button>
+            <button class="toolBtn ${state.mode === "erase" ? "active" : ""}" data-action="eraser">Erase Spot</button>
+          </div>
+          <div class="sliderRow">
+            <label>Brush size: <span data-bind="brush">${state.brushSize}</span>px</label>
+            <input data-action="brush-size" type="range" min="3" max="90" value="${state.brushSize}">
+          </div>
+          <div class="hint">Use zoom, then Brush Back missing parts or Erase Spot leftover background.</div>
+        </div>
+
+        <div class="stepCard ${exportActive}">
+          <div class="stepTitle"><span class="stepNum">4</span> Export</div>
+          <button class="toolBtn primary full" data-action="export">Export Transparent PNG</button>
+        </div>
+      </div>
     `;
   }
 
   function render() {
-    const studio = studios[state.studio];
-
     document.querySelectorAll("[data-studio]").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.studio === state.studio);
     });
 
-    desktopPanel.innerHTML = panelTemplate(studio, false);
-    mobilePanel.innerHTML = panelTemplate(studio, true);
-    statusStudio.textContent = studio.status;
-    taskLine.textContent = `${studio.title}: ${studio.summary}`;
-    canvasCard.classList.toggle("wand-active", state.wandActive);
+    desktopPanel.innerHTML = panelTemplate();
+    mobilePanel.innerHTML = panelTemplate();
 
-    wireDynamicControls();
+    const s = studios[state.studio];
+    taskLine.textContent = `${s.title}: ${s.summary}`;
+    statusLeft.textContent = state.mode ? `Mode: ${state.mode}` : `${s.title} ready`;
+    canvasCard.classList.toggle("wandActive", state.mode === "wand");
+    canvasCard.classList.toggle("paintActive", state.mode === "restore" || state.mode === "erase");
+
+    wireControls();
   }
 
-  function wireDynamicControls() {
-    document.querySelectorAll("[data-action='import']").forEach(btn => btn.addEventListener("click", openFile));
-    document.querySelectorAll("[data-action='wand']").forEach(btn => {
-      btn.classList.toggle("active", state.wandActive);
-      btn.addEventListener("click", toggleWand);
-    });
-    document.querySelectorAll("[data-action='remove-bg']").forEach(btn => btn.addEventListener("click", removeBackground));
-    document.querySelectorAll("[data-action='export-png']").forEach(btn => btn.addEventListener("click", exportPNG));
-    document.querySelectorAll("[data-action='tolerance']").forEach(input => {
-      input.value = state.tolerance;
-      input.addEventListener("input", e => {
-        state.tolerance = Number(e.target.value);
-        document.querySelectorAll("[data-bind='tol']").forEach(span => span.textContent = state.tolerance);
-      });
-    });
-    document.querySelectorAll("[data-bind='tol']").forEach(span => span.textContent = state.tolerance);
+  function wireControls() {
+    document.querySelectorAll("[data-action]").forEach(el => {
+      const a = el.dataset.action;
 
-    const closeDrawerBtn = document.getElementById("closeDrawerBtn");
-    if (closeDrawerBtn) closeDrawerBtn.addEventListener("click", closeDrawer);
+      if (a === "close") el.onclick = closeDrawer;
+      if (a === "import") el.onclick = openFile;
+      if (a === "quick-remove") el.onclick = quickRemove;
+      if (a === "wand") el.onclick = toggleWand;
+      if (a === "similar-white") el.onclick = removeSimilarWhite;
+      if (a === "brush") el.onclick = () => setMode(state.mode === "restore" ? null : "restore");
+      if (a === "eraser") el.onclick = () => setMode(state.mode === "erase" ? null : "erase");
+      if (a === "export") el.onclick = exportPNG;
+
+      if (a === "tolerance") {
+        el.oninput = e => {
+          state.tolerance = Number(e.target.value);
+          document.querySelectorAll("[data-bind='tol']").forEach(x => x.textContent = state.tolerance);
+        };
+      }
+
+      if (a === "brush-size") {
+        el.oninput = e => {
+          state.brushSize = Number(e.target.value);
+          document.querySelectorAll("[data-bind='brush']").forEach(x => x.textContent = state.brushSize);
+        };
+      }
+    });
   }
 
   function selectStudio(key) {
-    if (!studios[key]) return;
     state.studio = key;
-    if (key !== "extract") state.wandActive = false;
+    if (key !== "extract") state.mode = null;
     render();
-    if (window.matchMedia("(max-width: 820px)").matches) openDrawer();
+    if (window.matchMedia("(max-width:820px)").matches) openDrawer();
   }
 
   function openDrawer() {
-    state.drawerOpen = true;
     mobileDrawer.classList.add("open");
-    app.classList.add("drawer-open");
+    app.classList.add("drawerOpen");
   }
 
   function closeDrawer() {
-    state.drawerOpen = false;
     mobileDrawer.classList.remove("open");
-    app.classList.remove("drawer-open");
+    app.classList.remove("drawerOpen");
   }
 
-  function openFile() { fileInput.click(); }
+  function openFile() {
+    fileInput.value = "";
+    fileInput.click();
+  }
+
+  function setMode(mode) {
+    if (!state.imageLoaded && mode) {
+      statusRight.textContent = "Import an image first";
+      return;
+    }
+
+    state.mode = mode;
+    if (mode === "wand") statusRight.textContent = "Tap the background area to select it";
+    if (mode === "restore") statusRight.textContent = "Brush Back active";
+    if (mode === "erase") statusRight.textContent = "Erase Spot active";
+    if (!mode) statusRight.textContent = state.imageLoaded ? state.imageName : "No image loaded";
+    render();
+  }
 
   function pushHistory() {
     if (!state.imageLoaded) return;
-    try {
-      state.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-      if (state.history.length > 20) state.history.shift();
-      state.future = [];
-    } catch {}
+    state.history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    if (state.history.length > 25) state.history.shift();
+    state.future = [];
+  }
+
+  function undo() {
+    if (!state.history.length || !state.imageLoaded) return;
+    state.future.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    ctx.putImageData(state.history.pop(),0,0);
+    statusRight.textContent = "Undo";
+  }
+
+  function redo() {
+    if (!state.future.length || !state.imageLoaded) return;
+    state.history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    ctx.putImageData(state.future.pop(),0,0);
+    statusRight.textContent = "Redo";
   }
 
   function loadFile(file) {
     if (!file) return;
+
     const img = new Image();
-    const reader = new FileReader();
+    const url = URL.createObjectURL(file);
 
-    reader.onload = event => {
-      img.onload = () => {
-        const max = 1800;
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
+    img.onload = () => {
+      const max = 1800;
+      let w = img.naturalWidth;
+      let h = img.naturalHeight;
+      const scale = Math.min(1, max / Math.max(w,h));
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
 
-        if (Math.max(w, h) > max) {
-          const scale = max / Math.max(w, h);
-          w = Math.round(w * scale);
-          h = Math.round(h * scale);
-        }
+      canvas.width = w;
+      canvas.height = h;
+      ctx.clearRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
 
-        canvas.width = w;
-        canvas.height = h;
-        ctx.clearRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-
-        canvasCard.classList.add("has-image");
-        state.imageLoaded = true;
-        state.imageName = file.name;
-        state.sampledColor = null;
-        state.selection = null;
-        state.selectionCount = 0;
-        state.history = [];
-        state.future = [];
-        statusCanvas.textContent = file.name;
-        state.wandActive = false;
-        closeDrawer();
-        render();
-      };
-      img.src = event.target.result;
+      state.original = ctx.getImageData(0,0,w,h);
+      state.imageLoaded = true;
+      state.imageName = file.name;
+      state.history = [];
+      state.future = [];
+      state.mode = null;
+      canvasCard.classList.add("hasImage");
+      statusRight.textContent = file.name;
+      setZoom(1);
+      closeDrawer();
+      URL.revokeObjectURL(url);
+      render();
     };
 
-    reader.readAsDataURL(file);
+    img.onerror = () => {
+      statusRight.textContent = "Image could not load";
+      URL.revokeObjectURL(url);
+    };
+
+    img.src = url;
   }
 
   function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (state.imageLoaded) pushHistory();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     canvas.removeAttribute("width");
     canvas.removeAttribute("height");
-    canvasCard.classList.remove("has-image", "wand-active");
+    canvasCard.classList.remove("hasImage","wandActive","paintActive");
     state.imageLoaded = false;
     state.imageName = "";
-    state.sampledColor = null;
-    state.selection = null;
-    state.selectionCount = 0;
-    state.wandActive = false;
+    state.original = null;
     state.history = [];
     state.future = [];
-    statusCanvas.textContent = "No image loaded";
+    state.mode = null;
+    statusRight.textContent = "No image loaded";
+    setZoom(1);
     render();
   }
 
-  function fitCanvas() {
-    canvasCard.animate(
-      [{ transform: "scale(1)" }, { transform: "scale(.985)" }, { transform: "scale(1)" }],
-      { duration: 180, easing: "ease-out" }
-    );
-  }
-
-  function toggleWand() {
-    if (!state.imageLoaded) {
-      statusCanvas.textContent = "Import an image first";
-      return;
-    }
-    state.studio = "extract";
-    state.wandActive = !state.wandActive;
-    statusCanvas.textContent = state.wandActive ? "Tap background color" : state.imageName || "Image loaded";
-    render();
-  }
-
-  function getCanvasPoint(event) {
+  function getPoint(e) {
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((event.clientX - rect.left) * (canvas.width / rect.width));
-    const y = Math.floor((event.clientY - rect.top) * (canvas.height / rect.height));
+    const x = Math.floor((e.clientX - rect.left) * canvas.width / rect.width);
+    const y = Math.floor((e.clientY - rect.top) * canvas.height / rect.height);
     if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return null;
-    return { x, y };
+    return {x,y};
   }
 
-  function thresholdValue() {
-    // Lower, safer range. Tolerance 0 is very strict; 100 is broad.
-    return 3 + state.tolerance * 2.15;
+  function threshold() {
+    return Math.max(1, state.tolerance) * Math.max(1, state.tolerance) * 3;
   }
 
-  function colorDistance(sample, r, g, b, alpha) {
-    if (alpha === 0) return Infinity;
-    const dr = r - sample[0];
-    const dg = g - sample[1];
-    const db = b - sample[2];
-    return Math.sqrt(dr * dr + dg * dg + db * db);
+  function distOk(data, i, sample, tol2) {
+    if (data[i+3] === 0) return false;
+    const dr = data[i] - sample[0];
+    const dg = data[i+1] - sample[1];
+    const db = data[i+2] - sample[2];
+    return (dr*dr + dg*dg + db*db) <= tol2;
   }
 
-  function makeConnectedSelection(startX, startY, sample) {
-    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = image.data;
+  function connectedSelection(sx, sy, sample) {
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data = img.data;
     const w = canvas.width;
     const h = canvas.height;
-    const threshold = thresholdValue();
-    const total = w * h;
-    const selected = new Uint8Array(total);
-    const visited = new Uint8Array(total);
-    const stack = [[startX, startY]];
+    const sel = new Uint8Array(w*h);
+    const seen = new Uint8Array(w*h);
+    const stack = [[sx,sy]];
+    const tol2 = threshold();
     let count = 0;
 
     while (stack.length) {
-      const item = stack.pop();
-      const x = item[0];
-      const y = item[1];
+      const [x,y] = stack.pop();
+      if (x<0 || y<0 || x>=w || y>=h) continue;
+      const idx = y*w+x;
+      if (seen[idx]) continue;
+      seen[idx] = 1;
 
-      if (x < 0 || y < 0 || x >= w || y >= h) continue;
-
-      const idx = y * w + x;
-      if (visited[idx]) continue;
-      visited[idx] = 1;
-
-      const p = idx * 4;
-      const d = colorDistance(sample, data[p], data[p + 1], data[p + 2], data[p + 3]);
-
-      if (d <= threshold) {
-        selected[idx] = 1;
+      if (distOk(data, idx*4, sample, tol2)) {
+        sel[idx] = 1;
         count++;
-
-        stack.push([x + 1, y]);
-        stack.push([x - 1, y]);
-        stack.push([x, y + 1]);
-        stack.push([x, y - 1]);
+        stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
       }
     }
 
-    return { selected, count };
+    return {sel,count};
   }
 
-  function makeEdgeBackgroundSelection() {
-    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = image.data;
-    const w = canvas.width;
-    const h = canvas.height;
-    const selected = new Uint8Array(w * h);
-    let count = 0;
-
-    const starts = [
-      [0, 0],
-      [w - 1, 0],
-      [0, h - 1],
-      [w - 1, h - 1],
-      [Math.floor(w / 2), 0],
-      [Math.floor(w / 2), h - 1],
-      [0, Math.floor(h / 2)],
-      [w - 1, Math.floor(h / 2)]
-    ];
-
-    for (const [sx, sy] of starts) {
-      const p = (sy * w + sx) * 4;
-      const sample = [data[p], data[p + 1], data[p + 2], data[p + 3]];
-      const result = makeConnectedSelection(sx, sy, sample);
-
-      for (let i = 0; i < result.selected.length; i++) {
-        if (result.selected[i] && !selected[i]) {
-          selected[i] = 1;
-          count++;
-        }
-      }
-    }
-
-    return { selected, count };
-  }
-
-  function sampleColor(event) {
-    if (!state.imageLoaded || !state.wandActive) return;
-
-    const point = getCanvasPoint(event);
-    if (!point) return;
-
-    const data = ctx.getImageData(point.x, point.y, 1, 1).data;
-    state.sampledColor = [data[0], data[1], data[2], data[3]];
-
-    const result = makeConnectedSelection(point.x, point.y, state.sampledColor);
-    state.selection = result.selected;
-    state.selectionCount = result.count;
-
-    const pct = Math.round((result.count / (canvas.width * canvas.height)) * 100);
-    statusCanvas.textContent = `Selected connected area: ${pct}%`;
-    closeDrawer();
-  }
-
-  function applySelectionToTransparency(selection) {
-    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = image.data;
+  function applySelection(sel) {
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data = img.data;
     let removed = 0;
 
-    for (let i = 0; i < selection.length; i++) {
-      if (selection[i]) {
-        data[i * 4 + 3] = 0;
+    for (let i=0;i<sel.length;i++) {
+      if (sel[i]) {
+        data[i*4+3] = 0;
         removed++;
       }
     }
 
-    ctx.putImageData(image, 0, 0);
+    ctx.putImageData(img,0,0);
     return removed;
   }
 
-  function removeBackground() {
+  function quickRemove() {
     if (!state.imageLoaded) {
-      statusCanvas.textContent = "Import an image first";
+      statusRight.textContent = "Import an image first";
       return;
     }
 
     pushHistory();
 
-    let selection = state.selection;
-    let mode = "Magic Wand";
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data = img.data;
+    const w = canvas.width;
+    const h = canvas.height;
+    const starts = [
+      [0,0],[w-1,0],[0,h-1],[w-1,h-1],
+      [Math.floor(w/2),0],[Math.floor(w/2),h-1],
+      [0,Math.floor(h/2)],[w-1,Math.floor(h/2)]
+    ];
+    const combined = new Uint8Array(w*h);
+    let total = 0;
 
-    if (!selection) {
-      const edge = makeEdgeBackgroundSelection();
-      selection = edge.selected;
-      mode = "Edge background";
-    }
+    starts.forEach(([x,y]) => {
+      const p = (y*w+x)*4;
+      const sample = [data[p],data[p+1],data[p+2],data[p+3]];
+      const result = connectedSelection(x,y,sample);
+      for (let i=0;i<result.sel.length;i++) {
+        if (result.sel[i] && !combined[i]) {
+          combined[i] = 1;
+          total++;
+        }
+      }
+    });
 
-    const removed = applySelectionToTransparency(selection);
-    const pct = Math.round((removed / (canvas.width * canvas.height)) * 100);
-
-    state.wandActive = false;
-    state.sampledColor = null;
-    state.selection = null;
-    state.selectionCount = 0;
-
-    statusCanvas.textContent = `${mode} removed: ${pct}% transparent`;
+    applySelection(combined);
+    state.mode = null;
+    statusRight.textContent = `Quick removed ${Math.round(total/(w*h)*100)}%`;
     closeDrawer();
     render();
   }
 
-  function exportPNG() {
+  function toggleWand() {
+    setMode(state.mode === "wand" ? null : "wand");
+    if (state.mode === "wand") closeDrawer();
+  }
+
+  function magicWandAt(e) {
+    if (!state.imageLoaded || state.mode !== "wand") return;
+    const p = getPoint(e);
+    if (!p) return;
+
+    const one = ctx.getImageData(p.x,p.y,1,1).data;
+    const sample = [one[0],one[1],one[2],one[3]];
+    const result = connectedSelection(p.x,p.y,sample);
+
+    pushHistory();
+    applySelection(result.sel);
+
+    state.mode = null;
+    statusRight.textContent = `Magic Wand removed ${Math.round(result.count/(canvas.width*canvas.height)*100)}%`;
+    render();
+  }
+
+  function removeSimilarWhite() {
     if (!state.imageLoaded) {
-      statusCanvas.textContent = "Import an image first";
+      statusRight.textContent = "Import an image first";
       return;
     }
 
-    const link = document.createElement("a");
-    const base = state.imageName ? state.imageName.replace(/\.[^.]+$/, "") : "image-lab-export";
-    link.download = `${base}-transparent.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    statusCanvas.textContent = "Transparent PNG exported";
+    pushHistory();
+
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const d = img.data;
+    const tol = Math.max(8, state.tolerance * 2.2);
+    let removed = 0;
+
+    for (let i=0;i<d.length;i+=4) {
+      const dr = 255 - d[i];
+      const dg = 255 - d[i+1];
+      const db = 255 - d[i+2];
+      const distance = Math.sqrt(dr*dr + dg*dg + db*db);
+      const nearNeutral = Math.abs(d[i]-d[i+1]) < 18 && Math.abs(d[i+1]-d[i+2]) < 18;
+      if (d[i+3] > 0 && distance <= tol && nearNeutral) {
+        d[i+3] = 0;
+        removed++;
+      }
+    }
+
+    ctx.putImageData(img,0,0);
+    state.mode = null;
+    statusRight.textContent = `Similar white removed ${Math.round(removed/(canvas.width*canvas.height)*100)}%`;
+    render();
   }
 
-  function undo() {
-    if (!state.history.length) return;
-    state.future.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-    const previous = state.history.pop();
-    ctx.putImageData(previous, 0, 0);
-    statusCanvas.textContent = "Undo";
+  function paintAt(e) {
+    if (!state.imageLoaded || (state.mode !== "restore" && state.mode !== "erase")) return;
+
+    const p = getPoint(e);
+    if (!p) return;
+
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data = img.data;
+    const original = state.original ? state.original.data : null;
+    const r = state.brushSize;
+    const r2 = r*r;
+
+    for (let y=Math.max(0,p.y-r); y<=Math.min(canvas.height-1,p.y+r); y++) {
+      for (let x=Math.max(0,p.x-r); x<=Math.min(canvas.width-1,p.x+r); x++) {
+        const dx = x-p.x;
+        const dy = y-p.y;
+        if (dx*dx + dy*dy > r2) continue;
+        const idx = (y*canvas.width+x)*4;
+
+        if (state.mode === "erase") {
+          data[idx+3] = 0;
+        } else if (state.mode === "restore" && original) {
+          data[idx] = original[idx];
+          data[idx+1] = original[idx+1];
+          data[idx+2] = original[idx+2];
+          data[idx+3] = original[idx+3];
+        }
+      }
+    }
+
+    ctx.putImageData(img,0,0);
   }
 
-  function redo() {
-    if (!state.future.length) return;
-    state.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-    const next = state.future.pop();
-    ctx.putImageData(next, 0, 0);
-    statusCanvas.textContent = "Redo";
+  function exportPNG() {
+    if (!state.imageLoaded) {
+      statusRight.textContent = "Import an image first";
+      return;
+    }
+
+    const a = document.createElement("a");
+    const base = state.imageName ? state.imageName.replace(/\.[^.]+$/,"") : "image-lab-export";
+    a.download = `${base}-transparent.png`;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+    statusRight.textContent = "Transparent PNG exported";
+  }
+
+  function setZoom(value) {
+    state.zoom = Number(value);
+    canvas.style.transform = `scale(${state.zoom})`;
+    canvas.style.transformOrigin = "center center";
+    zoomSelect.value = String(state.zoom);
   }
 
   function setupEvents() {
-    document.addEventListener("click", event => {
-      const studioBtn = event.target.closest("[data-studio]");
-      if (studioBtn) selectStudio(studioBtn.dataset.studio);
+    document.addEventListener("click", e => {
+      const studio = e.target.closest("[data-studio]");
+      if (studio) selectStudio(studio.dataset.studio);
     });
 
-    uploadTopBtn.addEventListener("click", openFile);
-    uploadCanvasBtn.addEventListener("click", openFile);
-    clearBtn.addEventListener("click", clearCanvas);
-    fitBtn.addEventListener("click", fitCanvas);
-    undoBtn.addEventListener("click", undo);
-    redoBtn.addEventListener("click", redo);
+    document.getElementById("importTopBtn").onclick = openFile;
+    document.getElementById("importCanvasBtn").onclick = openFile;
+    document.getElementById("clearBtn").onclick = clearCanvas;
+    document.getElementById("undoCanvasBtn").onclick = undo;
+    document.getElementById("redoCanvasBtn").onclick = redo;
+    zoomSelect.onchange = e => {
+      setZoom(e.target.value);
+      statusRight.textContent = `Zoom ${Math.round(state.zoom*100)}%`;
+    };
 
-    fileInput.addEventListener("change", event => {
-      loadFile(event.target.files[0]);
-      fileInput.value = "";
+    fileInput.onchange = e => loadFile(e.target.files[0]);
+
+    canvas.addEventListener("pointerdown", e => {
+      if (state.mode === "wand") {
+        magicWandAt(e);
+        return;
+      }
+
+      if (state.mode === "restore" || state.mode === "erase") {
+        state.painting = true;
+        pushHistory();
+        paintAt(e);
+        try { canvas.setPointerCapture(e.pointerId); } catch {}
+      }
     });
 
-    canvas.addEventListener("pointerdown", sampleColor);
+    canvas.addEventListener("pointermove", e => {
+      if (state.painting) paintAt(e);
+    });
 
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape") {
-        state.wandActive = false;
+    canvas.addEventListener("pointerup", e => {
+      state.painting = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch {}
+    });
+
+    canvas.addEventListener("pointercancel", () => state.painting = false);
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        state.mode = null;
         closeDrawer();
         render();
       }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
-        event.preventDefault();
-        openFile();
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
-        event.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
         undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        openFile();
       }
     });
 
     let startX = 0;
     let startWidth = 0;
 
-    resizeHandle.addEventListener("pointerdown", event => {
-      startX = event.clientX;
-      startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--panel-width"), 10);
+    resizeHandle.addEventListener("pointerdown", e => {
+      startX = e.clientX;
+      startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--panelWidth"),10);
       document.body.classList.add("resizing");
-      resizeHandle.setPointerCapture(event.pointerId);
+      resizeHandle.setPointerCapture(e.pointerId);
     });
 
-    resizeHandle.addEventListener("pointermove", event => {
+    resizeHandle.addEventListener("pointermove", e => {
       if (!document.body.classList.contains("resizing")) return;
-      const delta = startX - event.clientX;
-      const next = Math.max(280, Math.min(520, startWidth + delta));
-      document.documentElement.style.setProperty("--panel-width", `${next}px`);
+      const delta = startX - e.clientX;
+      const next = Math.max(290, Math.min(540, startWidth + delta));
+      document.documentElement.style.setProperty("--panelWidth", `${next}px`);
     });
 
-    resizeHandle.addEventListener("pointerup", event => {
+    resizeHandle.addEventListener("pointerup", e => {
       document.body.classList.remove("resizing");
-      resizeHandle.releasePointerCapture(event.pointerId);
+      try { resizeHandle.releasePointerCapture(e.pointerId); } catch {}
     });
   }
 

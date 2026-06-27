@@ -418,7 +418,14 @@
     line-height: 1.35;
   }
 
-  .hidden-file { display: none; }
+  .hidden-file {
+    position: fixed;
+    left: -1000px;
+    top: -1000px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
 
   .mobile-studio-bar,
   .mobile-drawer { display: none; }
@@ -685,7 +692,7 @@
             <button class="tool-btn" data-action="wand">🪄 Magic Wand</button>
             <button class="tool-btn" data-action="remove-bg">⬜ Remove BG</button>
           </div>
-          <div class="hint" id="wandHint">Workflow: Import → Magic Wand → tap background → Remove BG.</div>
+          <div class="hint" id="wandHint">Workflow: Import → Magic Wand → tap the outside background → Remove BG. Without a tap, Remove BG uses the image edges.</div>
         </div>
         <div class="tool-group">
           <h3>Clean up</h3>
@@ -795,6 +802,8 @@
     wandActive: false,
     tolerance: 32,
     sampledColor: null,
+    selection: null,
+    selectionCount: 0,
     history: [],
     future: []
   };
@@ -944,6 +953,8 @@
         state.imageLoaded = true;
         state.imageName = file.name;
         state.sampledColor = null;
+        state.selection = null;
+        state.selectionCount = 0;
         state.history = [];
         state.future = [];
         statusCanvas.textContent = file.name;
@@ -965,6 +976,8 @@
     state.imageLoaded = false;
     state.imageName = "";
     state.sampledColor = null;
+    state.selection = null;
+    state.selectionCount = 0;
     state.wandActive = false;
     state.history = [];
     state.future = [];
@@ -998,22 +1011,126 @@
     return { x, y };
   }
 
+  function thresholdValue() {
+    // Lower, safer range. Tolerance 0 is very strict; 100 is broad.
+    return 3 + state.tolerance * 2.15;
+  }
+
+  function colorDistance(sample, r, g, b, alpha) {
+    if (alpha === 0) return Infinity;
+    const dr = r - sample[0];
+    const dg = g - sample[1];
+    const db = b - sample[2];
+    return Math.sqrt(dr * dr + dg * dg + db * db);
+  }
+
+  function makeConnectedSelection(startX, startY, sample) {
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = image.data;
+    const w = canvas.width;
+    const h = canvas.height;
+    const threshold = thresholdValue();
+    const total = w * h;
+    const selected = new Uint8Array(total);
+    const visited = new Uint8Array(total);
+    const stack = [[startX, startY]];
+    let count = 0;
+
+    while (stack.length) {
+      const item = stack.pop();
+      const x = item[0];
+      const y = item[1];
+
+      if (x < 0 || y < 0 || x >= w || y >= h) continue;
+
+      const idx = y * w + x;
+      if (visited[idx]) continue;
+      visited[idx] = 1;
+
+      const p = idx * 4;
+      const d = colorDistance(sample, data[p], data[p + 1], data[p + 2], data[p + 3]);
+
+      if (d <= threshold) {
+        selected[idx] = 1;
+        count++;
+
+        stack.push([x + 1, y]);
+        stack.push([x - 1, y]);
+        stack.push([x, y + 1]);
+        stack.push([x, y - 1]);
+      }
+    }
+
+    return { selected, count };
+  }
+
+  function makeEdgeBackgroundSelection() {
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = image.data;
+    const w = canvas.width;
+    const h = canvas.height;
+    const selected = new Uint8Array(w * h);
+    let count = 0;
+
+    const starts = [
+      [0, 0],
+      [w - 1, 0],
+      [0, h - 1],
+      [w - 1, h - 1],
+      [Math.floor(w / 2), 0],
+      [Math.floor(w / 2), h - 1],
+      [0, Math.floor(h / 2)],
+      [w - 1, Math.floor(h / 2)]
+    ];
+
+    for (const [sx, sy] of starts) {
+      const p = (sy * w + sx) * 4;
+      const sample = [data[p], data[p + 1], data[p + 2], data[p + 3]];
+      const result = makeConnectedSelection(sx, sy, sample);
+
+      for (let i = 0; i < result.selected.length; i++) {
+        if (result.selected[i] && !selected[i]) {
+          selected[i] = 1;
+          count++;
+        }
+      }
+    }
+
+    return { selected, count };
+  }
+
   function sampleColor(event) {
     if (!state.imageLoaded || !state.wandActive) return;
+
     const point = getCanvasPoint(event);
     if (!point) return;
+
     const data = ctx.getImageData(point.x, point.y, 1, 1).data;
     state.sampledColor = [data[0], data[1], data[2], data[3]];
-    statusCanvas.textContent = `Sampled RGB ${data[0]}, ${data[1]}, ${data[2]}`;
+
+    const result = makeConnectedSelection(point.x, point.y, state.sampledColor);
+    state.selection = result.selected;
+    state.selectionCount = result.count;
+
+    const pct = Math.round((result.count / (canvas.width * canvas.height)) * 100);
+    statusCanvas.textContent = `Selected connected area: ${pct}%`;
     closeDrawer();
   }
 
-  function colorDistance(a, r, g, b, alpha) {
-    if (alpha === 0) return Infinity;
-    const dr = r - a[0];
-    const dg = g - a[1];
-    const db = b - a[2];
-    return Math.sqrt(dr * dr + dg * dg + db * db);
+  function applySelectionToTransparency(selection) {
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = image.data;
+    let removed = 0;
+
+    for (let i = 0; i < selection.length; i++) {
+      if (selection[i]) {
+        data[i * 4 + 3] = 0;
+        removed++;
+      }
+    }
+
+    ctx.putImageData(image, 0, 0);
+    return removed;
   }
 
   function removeBackground() {
@@ -1022,30 +1139,26 @@
       return;
     }
 
-    if (!state.sampledColor) {
-      state.sampledColor = [255, 255, 255, 255];
-      statusCanvas.textContent = "No sample chosen. Removing near-white.";
-    }
-
     pushHistory();
 
-    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = image.data;
-    const threshold = 8 + state.tolerance * 3.2;
-    let removed = 0;
+    let selection = state.selection;
+    let mode = "Magic Wand";
 
-    for (let i = 0; i < data.length; i += 4) {
-      const d = colorDistance(state.sampledColor, data[i], data[i+1], data[i+2], data[i+3]);
-      if (d <= threshold) {
-        data[i+3] = 0;
-        removed++;
-      }
+    if (!selection) {
+      const edge = makeEdgeBackgroundSelection();
+      selection = edge.selected;
+      mode = "Edge background";
     }
 
-    ctx.putImageData(image, 0, 0);
+    const removed = applySelectionToTransparency(selection);
+    const pct = Math.round((removed / (canvas.width * canvas.height)) * 100);
+
     state.wandActive = false;
     state.sampledColor = null;
-    statusCanvas.textContent = `Background removed: ${Math.round((removed / (data.length / 4)) * 100)}% transparent`;
+    state.selection = null;
+    state.selectionCount = 0;
+
+    statusCanvas.textContent = `${mode} removed: ${pct}% transparent`;
     closeDrawer();
     render();
   }

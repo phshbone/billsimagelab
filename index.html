@@ -492,7 +492,7 @@
 
     .canvas-stage {
       padding: 14px;
-      transition: transform .22s ease, padding-bottom .22s ease;
+      transition: padding-bottom .22s ease;
     }
 
     .checker-wrap {
@@ -500,27 +500,25 @@
       height: 100%;
       min-height: 0;
       border-radius: 18px;
-      transition: height .22s ease, transform .22s ease;
+      transition: transform .22s ease;
     }
 
     .canvas-card {
       width: 78%;
-      transition: transform .22s ease, width .22s ease, height .22s ease;
+      transition: transform .22s ease, width .22s ease;
     }
 
     .app.drawer-open .canvas-stage {
-      transform: translateY(-18dvh);
-      padding-bottom: calc(var(--drawer-height) + 12px);
+      padding-bottom: calc(var(--drawer-height) + 24px);
     }
 
     .app.drawer-open .checker-wrap {
-      height: 58%;
-      transform: scale(.96);
+      transform: scale(.98);
     }
 
     .app.drawer-open .canvas-card {
-      width: 68%;
-      transform: scale(.92);
+      width: 72%;
+      transform: scale(.94);
     }
 
     .statusbar {
@@ -572,7 +570,7 @@
       max-height: var(--drawer-height);
       transform: translateY(calc(100% + var(--mobile-bar)));
       transition: transform .22s ease;
-      background: rgba(14, 22, 50, .92);
+      background: rgba(14, 22, 50, .93);
       border-top: 1px solid var(--line-strong);
       border-radius: 24px 24px 0 0;
       z-index: 18;

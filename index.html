@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#090f2b" />
-<title>bill's image lab — build 6.4 combined mask fix</title>
+<title>bill's image lab — build 6.5 canvas view fix</title>
 <style>
   :root {
     --bg:#090f2b;
@@ -118,12 +118,29 @@
 
   .canvasStage{
     min-width:0;min-height:0;position:relative;
-    overflow:auto;
+    overflow:scroll;
     display:flex;
     align-items:flex-start;
     justify-content:center;
     padding:32px;
     scroll-padding:32px;
+    scrollbar-gutter:stable both-edges;
+  }
+
+  .canvasStage::-webkit-scrollbar{
+    width:14px;
+    height:14px;
+  }
+
+  .canvasStage::-webkit-scrollbar-track{
+    background:rgba(255,255,255,.06);
+    border-radius:999px;
+  }
+
+  .canvasStage::-webkit-scrollbar-thumb{
+    background:rgba(117,215,255,.36);
+    border:3px solid rgba(5,8,23,.82);
+    border-radius:999px;
   }
 
   .pageShell{
@@ -198,7 +215,7 @@
   }
 
   .canvasControls{
-    position:fixed;right:calc(var(--panelWidth) + 26px);bottom:64px;z-index:30;
+    position:fixed;right:calc(var(--panelWidth) + 42px);bottom:64px;z-index:30;
     display:flex;gap:8px;padding:8px;border-radius:18px;
     border:1px solid var(--line2);background:rgba(5,8,23,.82);
     backdrop-filter:blur(14px);box-shadow:0 16px 38px rgba(0,0,0,.30);
@@ -211,8 +228,18 @@
   }
   .miniBtn span{display:block;font-size:10px;color:var(--muted);line-height:1;font-weight:800}
   .zoomSelect,.presetSelect{
-    height:48px;border-radius:14px;background:rgba(255,255,255,.07);
-    border:1px solid var(--line);color:var(--ink);padding:0 10px;font-weight:850;
+    height:48px;border-radius:14px;
+    background:#202b57;
+    border:1px solid rgba(255,255,255,.28);
+    color:#ffffff;
+    padding:0 12px;
+    font-weight:900;
+    appearance:auto;
+  }
+
+  .zoomSelect option,.presetSelect option{
+    background:#111a3f;
+    color:#ffffff;
   }
 
   .status{
@@ -329,9 +356,9 @@
       <div class="title">
         <div class="titleLine">
           <strong>bill's image lab</strong>
-          <span class="buildBadge">Build 6.4</span>
+          <span class="buildBadge">Build 6.5</span>
         </div>
-        <span id="taskLine">Combined Mask Fix: Magic Wand and sliders now share one removal mask.</span>
+        <span id="taskLine">Canvas View Fix: always-visible scrollbars and better zoom options.</span>
       </div>
       <div class="topActions">
         <button class="pill" id="fitBtn">Fit</button>
@@ -358,6 +385,9 @@
         <button class="miniBtn" id="undoCanvasBtn">↶<span>Undo</span></button>
         <button class="miniBtn" id="redoCanvasBtn">↷<span>Redo</span></button>
         <select class="zoomSelect" id="zoomSelect">
+          <option value="0.5">50%</option>
+          <option value="0.65">65%</option>
+          <option value="0.75">75%</option>
           <option value="fit">Fit</option>
           <option value="1">100%</option>
           <option value="1.5">150%</option>
@@ -482,7 +512,7 @@
     return `
       <div class="panelHead">
         <button class="closeDrawer" data-action="close">×</button>
-        <div class="eyebrow">build 6.4 · combined mask</div>
+        <div class="eyebrow">build 6.5 · canvas view</div>
         <h2>Extract Studio</h2>
         <p>Document canvas first. Image sits inside the page.</p>
       </div>

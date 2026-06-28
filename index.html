@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#090f2b" />
-<title>bill's image lab — build 6.5 canvas view fix</title>
+<title>bill's image lab — build 6.6 scroll fix</title>
 <style>
   :root {
     --bg:#090f2b;
@@ -145,14 +145,16 @@
 
   .pageShell{
     position:relative;
-    display:grid;place-items:center;
-    transform-origin:top center;
-    transition:transform .12s ease;
+    display:block;
+    flex:0 0 auto;
     margin:auto;
   }
 
   .page{
-    position:relative;
+    position:absolute;
+    left:0;
+    top:0;
+    transform-origin:top left;
     background:
       linear-gradient(45deg,rgba(255,255,255,.075) 25%,transparent 25%),
       linear-gradient(-45deg,rgba(255,255,255,.075) 25%,transparent 25%),
@@ -215,7 +217,7 @@
   }
 
   .canvasControls{
-    position:fixed;right:calc(var(--panelWidth) + 42px);bottom:64px;z-index:30;
+    position:fixed;right:calc(var(--panelWidth) + 54px);bottom:64px;z-index:30;
     display:flex;gap:8px;padding:8px;border-radius:18px;
     border:1px solid var(--line2);background:rgba(5,8,23,.82);
     backdrop-filter:blur(14px);box-shadow:0 16px 38px rgba(0,0,0,.30);
@@ -250,15 +252,41 @@
   }
 
   .panel{
-    min-width:0;border-left:1px solid var(--line);
-    background:rgba(17,26,63,.84);backdrop-filter:blur(16px);
-    display:grid;grid-template-rows:auto minmax(0,1fr);z-index:8;
+    min-width:0;
+    height:100dvh;
+    border-left:1px solid var(--line);
+    background:rgba(17,26,63,.84);
+    backdrop-filter:blur(16px);
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr);
+    overflow:hidden;
+    z-index:8;
   }
   .panelHead{padding:18px;border-bottom:1px solid var(--line)}
   .eyebrow{color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}
   .panelHead h2{margin:5px 0 4px;font-size:24px;letter-spacing:-.045em}
   .panelHead p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
-  .panelBody{overflow:auto;padding:16px}
+  .panelBody{
+    min-height:0;
+    overflow-y:scroll;
+    padding:16px;
+    scrollbar-gutter:stable;
+  }
+
+  .panelBody::-webkit-scrollbar{
+    width:12px;
+  }
+
+  .panelBody::-webkit-scrollbar-track{
+    background:rgba(255,255,255,.05);
+    border-radius:999px;
+  }
+
+  .panelBody::-webkit-scrollbar-thumb{
+    background:rgba(117,215,255,.34);
+    border:3px solid rgba(17,26,63,.84);
+    border-radius:999px;
+  }
 
   .stepCard{
     border:1px solid var(--line);
@@ -339,7 +367,11 @@
     .grab{width:48px;height:5px;border-radius:999px;background:rgba(255,255,255,.24);margin:9px auto 2px}
     .mobileDrawer .panelHead{padding:10px 16px 14px;position:relative}
     .mobileDrawer .panelHead h2{font-size:21px}
-    .mobileDrawer .panelBody{max-height:calc(var(--drawerHeight) - 98px);padding:14px}
+    .mobileDrawer .panelBody{
+      max-height:calc(var(--drawerHeight) - 98px);
+      overflow-y:scroll;
+      padding:14px;
+    }
     .closeDrawer{display:grid;place-items:center;position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
   }
 </style>
@@ -356,9 +388,9 @@
       <div class="title">
         <div class="titleLine">
           <strong>bill's image lab</strong>
-          <span class="buildBadge">Build 6.5</span>
+          <span class="buildBadge">Build 6.6</span>
         </div>
-        <span id="taskLine">Canvas View Fix: always-visible scrollbars and better zoom options.</span>
+        <span id="taskLine">Scroll Fix: canvas and right panel now scroll correctly.</span>
       </div>
       <div class="topActions">
         <button class="pill" id="fitBtn">Fit</button>
@@ -512,7 +544,7 @@
     return `
       <div class="panelHead">
         <button class="closeDrawer" data-action="close">×</button>
-        <div class="eyebrow">build 6.5 · canvas view</div>
+        <div class="eyebrow">build 6.6 · scroll fix</div>
         <h2>Extract Studio</h2>
         <p>Document canvas first. Image sits inside the page.</p>
       </div>
@@ -604,21 +636,30 @@
     zoomSelect.value="fit";
     requestAnimationFrame(() => {
       canvasStage.scrollLeft = Math.max(0, (canvasStage.scrollWidth - canvasStage.clientWidth) / 2);
-      canvasStage.scrollTop = 0;
+      canvasStage.scrollTop = Math.max(0, (canvasStage.scrollHeight - canvasStage.clientHeight) / 2);
     });
   }
 
   function applyZoom(){
     const z=state.zoom==="fit" ? state.fitScale : Number(state.zoom);
-    pageShell.style.transform=`scale(${z})`;
-    pageShell.style.width=state.pageW+"px";
-    pageShell.style.height=state.pageH+"px";
+
+    // Real scroll dimensions live on pageShell.
+    // Visual scale lives on page. This prevents the canvas from zooming out of the scroll system.
+    pageShell.style.width = `${state.pageW * z}px`;
+    pageShell.style.height = `${state.pageH * z}px`;
+    page.style.width = state.pageW + "px";
+    page.style.height = state.pageH + "px";
+    page.style.transform = `scale(${z})`;
   }
 
   function setZoom(value){
     state.zoom=value;
     applyZoom();
     zoomSelect.value=value;
+    requestAnimationFrame(() => {
+      canvasStage.scrollLeft = Math.max(0, (canvasStage.scrollWidth - canvasStage.clientWidth) / 2);
+      canvasStage.scrollTop = Math.max(0, (canvasStage.scrollHeight - canvasStage.clientHeight) / 2);
+    });
     statusRight.textContent=value==="fit" ? "Fit page" : `Zoom ${Math.round(Number(value)*100)}%`;
   }
 

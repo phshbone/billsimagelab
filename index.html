@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#090f2b" />
-<title>bill's image lab — build 6.3 edge fit slider</title>
+<title>bill's image lab — build 6.4 combined mask fix</title>
 <style>
   :root {
     --bg:#090f2b;
@@ -119,15 +119,19 @@
   .canvasStage{
     min-width:0;min-height:0;position:relative;
     overflow:auto;
-    display:grid;place-items:center;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
     padding:32px;
+    scroll-padding:32px;
   }
 
   .pageShell{
     position:relative;
     display:grid;place-items:center;
-    transform-origin:center center;
+    transform-origin:top center;
     transition:transform .12s ease;
+    margin:auto;
   }
 
   .page{
@@ -325,9 +329,9 @@
       <div class="title">
         <div class="titleLine">
           <strong>bill's image lab</strong>
-          <span class="buildBadge">Build 6.3</span>
+          <span class="buildBadge">Build 6.4</span>
         </div>
-        <span id="taskLine">Edge Fit Slider: tighten or loosen the cutout after Quick Remove.</span>
+        <span id="taskLine">Combined Mask Fix: Magic Wand and sliders now share one removal mask.</span>
       </div>
       <div class="topActions">
         <button class="pill" id="fitBtn">Fit</button>
@@ -478,7 +482,7 @@
     return `
       <div class="panelHead">
         <button class="closeDrawer" data-action="close">×</button>
-        <div class="eyebrow">build 6.3 · edge fit</div>
+        <div class="eyebrow">build 6.4 · combined mask</div>
         <h2>Extract Studio</h2>
         <p>Document canvas first. Image sits inside the page.</p>
       </div>
@@ -508,7 +512,7 @@
             <label>Tolerance <span data-bind="tol">${state.tolerance}</span></label>
             <input data-action="tolerance" type="range" min="0" max="120" value="${state.tolerance}">
           </div>
-          <div class="hint">Quick Remove makes the first cut. Use Edge Fit next instead of raising tolerance too far.</div>
+          <div class="hint">Quick Remove makes the first cut. Magic Wand stays active for repeated cleanup clicks until you choose another tool or press Escape.</div>
         </div>
 
         <div class="stepCard ${state.imageLoaded?"active":""}">
@@ -568,6 +572,10 @@
     state.fitScale=Math.min(availableW/state.pageW, availableH/state.pageH, 1);
     applyZoom();
     zoomSelect.value="fit";
+    requestAnimationFrame(() => {
+      canvasStage.scrollLeft = Math.max(0, (canvasStage.scrollWidth - canvasStage.clientWidth) / 2);
+      canvasStage.scrollTop = 0;
+    });
   }
 
   function applyZoom(){
@@ -643,7 +651,7 @@
   function setMode(mode, close=false){
     if(!state.imageLoaded && mode){statusRight.textContent="Import an image first";return}
     state.mode=mode;
-    if(mode==="wand") statusRight.textContent="Magic Wand: tap background area";
+    if(mode==="wand") statusRight.textContent="Magic Wand: keep clicking areas to remove";
     else if(mode==="restore") statusRight.textContent="Brush Back active";
     else if(mode==="erase") statusRight.textContent="Erase Spot active";
     else statusRight.textContent=state.imageLoaded?state.imageName:"No image loaded";
@@ -773,6 +781,33 @@
   }
 
 
+  function ensureBaseMask(){
+    if(!state.baseRemovalMask){
+      state.baseRemovalMask = new Uint8Array(canvas.width * canvas.height);
+    }
+    return state.baseRemovalMask;
+  }
+
+  function addToBaseMask(mask){
+    const base = ensureBaseMask();
+    for(let i=0;i<mask.length;i++){
+      if(mask[i]) base[i] = 1;
+    }
+  }
+
+  function applyCurrentBaseMask(){
+    if(!state.baseRemovalMask) return;
+    const w=canvas.width;
+    const h=canvas.height;
+    let mask = cloneMask(state.baseRemovalMask);
+
+    if(state.edgeFit>0) mask=dilateMask(mask,w,h,state.edgeFit);
+    if(state.edgeFit<0) mask=erodeMask(mask,w,h,Math.abs(state.edgeFit));
+    if(state.smoothEdge>0) mask=smoothMask(mask,w,h,state.smoothEdge);
+
+    restoreOriginalThenApplyMask(mask);
+  }
+
   function cloneMask(mask){
     return mask ? new Uint8Array(mask) : null;
   }
@@ -844,12 +879,7 @@
       statusRight.textContent="Run Quick Remove first";
       return;
     }
-    const w=canvas.width,h=canvas.height;
-    let mask=cloneMask(state.baseRemovalMask);
-    if(state.edgeFit>0) mask=dilateMask(mask,w,h,state.edgeFit);
-    if(state.edgeFit<0) mask=erodeMask(mask,w,h,Math.abs(state.edgeFit));
-    if(state.smoothEdge>0) mask=smoothMask(mask,w,h,state.smoothEdge);
-    restoreOriginalThenApplyMask(mask);
+    applyCurrentBaseMask();
     const edgeText=state.edgeFit>0?`+${state.edgeFit}`:`${state.edgeFit}`;
     statusRight.textContent=`Edge Fit ${edgeText}, Smooth ${state.smoothEdge}`;
   }
@@ -903,7 +933,7 @@
     state.baseRemovalMask=new Uint8Array(combined);
     state.edgeFit=0;
     state.smoothEdge=0;
-    applySelection(combined);
+    applyCurrentBaseMask();
     state.mode=null;
     statusRight.textContent=`Quick removed ${Math.round(total/(pageW*pageH)*100)}%`;
     closeDrawer();
@@ -916,9 +946,9 @@
     const one=ctx.getImageData(p.x,p.y,1,1).data;
     const result=connectedSelection(p.x,p.y,[one[0],one[1],one[2],one[3]]);
     pushHistory();
-    applySelection(result.sel);
-    state.mode=null;
-    statusRight.textContent=`Magic Wand removed ${Math.round(result.count/(canvas.width*canvas.height)*100)}%`;
+    addToBaseMask(result.sel);
+    applyCurrentBaseMask();
+    statusRight.textContent=`Magic Wand added ${Math.round(result.count/(canvas.width*canvas.height)*100)}% — keep clicking or choose another tool`;
     render();
   }
 
@@ -935,8 +965,13 @@
       const neutral=Math.abs(d[i]-d[i+1])<18&&Math.abs(d[i+1]-d[i+2])<18;
       if(d[i+3]>0&&distance<=tol&&neutral){d[i+3]=0;removed++}
     }
-    ctx.putImageData(img,0,0);
-    statusRight.textContent=`Similar white removed ${Math.round(removed/(canvas.width*canvas.height)*100)}%`;
+    const simMask = new Uint8Array(canvas.width * canvas.height);
+    for(let j=0;j<d.length;j+=4){
+      if(d[j+3] === 0) simMask[j/4] = 1;
+    }
+    addToBaseMask(simMask);
+    applyCurrentBaseMask();
+    statusRight.textContent=`Similar white added ${Math.round(removed/(canvas.width*canvas.height)*100)}% to mask`;
   }
 
   function paintAt(e){

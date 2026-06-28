@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#090f2b" />
-<title>bill's image lab — build 6.6 scroll fix</title>
+<title>bill's image lab — build 6.7 pan zoom fix</title>
 <style>
   :root {
     --bg:#090f2b;
@@ -229,6 +229,9 @@
     font-weight:900;font-size:18px;
   }
   .miniBtn span{display:block;font-size:10px;color:var(--muted);line-height:1;font-weight:800}
+  .miniBtn.active{border-color:rgba(125,255,168,.55);background:linear-gradient(135deg,rgba(125,255,168,.20),rgba(255,255,255,.06))}
+  .canvasStage.handMode{cursor:grab}
+  .canvasStage.handMode:active{cursor:grabbing}
   .zoomSelect,.presetSelect{
     height:48px;border-radius:14px;
     background:#202b57;
@@ -388,9 +391,9 @@
       <div class="title">
         <div class="titleLine">
           <strong>bill's image lab</strong>
-          <span class="buildBadge">Build 6.6</span>
+          <span class="buildBadge">Build 6.7</span>
         </div>
-        <span id="taskLine">Scroll Fix: canvas and right panel now scroll correctly.</span>
+        <span id="taskLine">Pan Zoom Fix: wheel zoom, hand pan, and cursor-centered navigation.</span>
       </div>
       <div class="topActions">
         <button class="pill" id="fitBtn">Fit</button>
@@ -416,15 +419,18 @@
       <div class="canvasControls">
         <button class="miniBtn" id="undoCanvasBtn">↶<span>Undo</span></button>
         <button class="miniBtn" id="redoCanvasBtn">↷<span>Redo</span></button>
+        <button class="miniBtn" id="handBtn">✋<span>Pan</span></button>
         <select class="zoomSelect" id="zoomSelect">
           <option value="0.5">50%</option>
           <option value="0.65">65%</option>
           <option value="0.75">75%</option>
           <option value="fit">Fit</option>
           <option value="1">100%</option>
+          <option value="1.25">125%</option>
           <option value="1.5">150%</option>
           <option value="2">200%</option>
           <option value="3">300%</option>
+          <option value="4">400%</option>
         </select>
       </div>
     </section>
@@ -483,6 +489,11 @@
     baseRemovalMask:null,
     mode:null,
     painting:false,
+    panning:false,
+    panStartX:0,
+    panStartY:0,
+    scrollStartX:0,
+    scrollStartY:0,
     zoom:"fit",
     fitScale:1
   };
@@ -544,7 +555,7 @@
     return `
       <div class="panelHead">
         <button class="closeDrawer" data-action="close">×</button>
-        <div class="eyebrow">build 6.6 · scroll fix</div>
+        <div class="eyebrow">build 6.7 · pan zoom</div>
         <h2>Extract Studio</h2>
         <p>Document canvas first. Image sits inside the page.</p>
       </div>
@@ -652,15 +663,52 @@
     page.style.transform = `scale(${z})`;
   }
 
-  function setZoom(value){
+  function currentZoomNumber(){
+    return state.zoom==="fit" ? state.fitScale : Number(state.zoom);
+  }
+
+  function nearestZoomOption(z){
+    const options=[0.5,0.65,0.75,1,1.25,1.5,2,3,4];
+    let best=options[0];
+    let diff=Math.abs(z-best);
+    for(const opt of options){
+      const d=Math.abs(z-opt);
+      if(d<diff){best=opt;diff=d;}
+    }
+    return String(best);
+  }
+
+  function setZoom(value, keepCenter=true){
     state.zoom=value;
     applyZoom();
     zoomSelect.value=value;
-    requestAnimationFrame(() => {
-      canvasStage.scrollLeft = Math.max(0, (canvasStage.scrollWidth - canvasStage.clientWidth) / 2);
-      canvasStage.scrollTop = Math.max(0, (canvasStage.scrollHeight - canvasStage.clientHeight) / 2);
-    });
+
+    if(keepCenter){
+      requestAnimationFrame(() => {
+        canvasStage.scrollLeft = Math.max(0, (canvasStage.scrollWidth - canvasStage.clientWidth) / 2);
+        canvasStage.scrollTop = Math.max(0, (canvasStage.scrollHeight - canvasStage.clientHeight) / 2);
+      });
+    }
+
     statusRight.textContent=value==="fit" ? "Fit page" : `Zoom ${Math.round(Number(value)*100)}%`;
+  }
+
+  function zoomAtPoint(nextZoom, clientX, clientY){
+    const oldZoom=currentZoomNumber();
+    const rect=canvasStage.getBoundingClientRect();
+
+    const localX=clientX-rect.left+canvasStage.scrollLeft;
+    const localY=clientY-rect.top+canvasStage.scrollTop;
+
+    state.zoom=String(nextZoom);
+    applyZoom();
+
+    const ratio=nextZoom/oldZoom;
+    canvasStage.scrollLeft=localX*ratio-(clientX-rect.left);
+    canvasStage.scrollTop=localY*ratio-(clientY-rect.top);
+
+    zoomSelect.value=nearestZoomOption(nextZoom);
+    statusRight.textContent=`Zoom ${Math.round(nextZoom*100)}%`;
   }
 
   function render(){
@@ -720,11 +768,12 @@
   function openFile(){fileInput.value="";fileInput.click()}
 
   function setMode(mode, close=false){
-    if(!state.imageLoaded && mode){statusRight.textContent="Import an image first";return}
+    if(!state.imageLoaded && mode && mode!=="hand"){statusRight.textContent="Import an image first";return}
     state.mode=mode;
     if(mode==="wand") statusRight.textContent="Magic Wand: keep clicking areas to remove";
     else if(mode==="restore") statusRight.textContent="Brush Back active";
     else if(mode==="erase") statusRight.textContent="Erase Spot active";
+    else if(mode==="hand") statusRight.textContent="Pan mode active";
     else statusRight.textContent=state.imageLoaded?state.imageName:"No image loaded";
     updateBrushCursorVisibility(false);
     if(close) closeDrawer();
@@ -1106,6 +1155,12 @@
     document.getElementById("fitBtn").onclick=fitPage;
     document.getElementById("undoCanvasBtn").onclick=undo;
     document.getElementById("redoCanvasBtn").onclick=redo;
+    const handBtn=document.getElementById("handBtn");
+    handBtn.onclick=()=>{
+      setMode(state.mode==="hand"?null:"hand");
+      handBtn.classList.toggle("active", state.mode==="hand");
+      canvasStage.classList.toggle("handMode", state.mode==="hand");
+    };
     zoomSelect.onchange=e=>setZoom(e.target.value);
     fileInput.onchange=e=>loadFile(e.target.files[0]);
 
@@ -1133,8 +1188,56 @@
     });
     canvas.addEventListener("pointercancel",()=>state.painting=false);
 
+    canvasStage.addEventListener("wheel", e=>{
+      e.preventDefault();
+
+      if(e.ctrlKey || e.metaKey){
+        const current=currentZoomNumber();
+        const direction=e.deltaY<0 ? 1 : -1;
+        const factor=direction>0 ? 1.12 : 0.88;
+        const next=Math.max(0.25, Math.min(5, current*factor));
+        zoomAtPoint(next,e.clientX,e.clientY);
+        return;
+      }
+
+      if(e.shiftKey){
+        canvasStage.scrollLeft += e.deltaY;
+      }else{
+        canvasStage.scrollTop += e.deltaY;
+        canvasStage.scrollLeft += e.deltaX;
+      }
+    }, {passive:false});
+
+    canvasStage.addEventListener("pointerdown", e=>{
+      if(state.mode!=="hand") return;
+      state.panning=true;
+      state.panStartX=e.clientX;
+      state.panStartY=e.clientY;
+      state.scrollStartX=canvasStage.scrollLeft;
+      state.scrollStartY=canvasStage.scrollTop;
+      canvasStage.setPointerCapture(e.pointerId);
+    });
+
+    canvasStage.addEventListener("pointermove", e=>{
+      if(!state.panning) return;
+      canvasStage.scrollLeft=state.scrollStartX-(e.clientX-state.panStartX);
+      canvasStage.scrollTop=state.scrollStartY-(e.clientY-state.panStartY);
+    });
+
+    canvasStage.addEventListener("pointerup", e=>{
+      state.panning=false;
+      try{canvasStage.releasePointerCapture(e.pointerId)}catch{}
+    });
+
     document.addEventListener("keydown",e=>{
-      if(e.key==="Escape"){state.mode=null;closeDrawer();render()}
+      if(e.key==="Escape"){
+        state.mode=null;
+        canvasStage.classList.remove("handMode");
+        const handBtn=document.getElementById("handBtn");
+        if(handBtn) handBtn.classList.remove("active");
+        closeDrawer();
+        render();
+      }
       if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();undo()}
       if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo()}
       if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="o"){e.preventDefault();openFile()}

@@ -22,7 +22,10 @@ jobs:
           node-version: '22'
 
       - name: Apply Smart Select patch
-        run: python tools/build_smart_select_69.py
+        run: |
+          python tools/build_smart_select_69.py
+          sed -i 's/smartModule.BrushMode.NEGATIVE/2/g; s/smartModule.BrushMode.POSITIVE/1/g' index.html
+          python tools/build_smart_select_69.py
 
       - name: Static smoke test
         run: node --check /tmp/image-lab-app.js

@@ -397,9 +397,9 @@
       <div class="title">
         <div class="titleLine">
           <strong>bill's image lab</strong>
-          <span class="buildBadge">Build 6.7</span>
+          <span class="buildBadge">Build 6.8</span>
         </div>
-        <span id="taskLine">Pan Zoom Fix: wheel zoom, hand pan, and cursor-centered navigation.</span>
+        <span id="taskLine">State Repair: safe canvas sizing, full undo, and persistent touch-up.</span>
       </div>
       <div class="topActions">
         <button class="pill" id="fitBtn">Fit</button>
@@ -493,6 +493,8 @@
     edgeFit:0,
     smoothEdge:0,
     baseRemovalMask:null,
+    manualEraseMask:null,
+    manualRestoreMask:null,
     mode:null,
     painting:false,
     panning:false,
@@ -561,17 +563,17 @@
     return `
       <div class="panelHead">
         <button class="closeDrawer" data-action="close">×</button>
-        <div class="eyebrow">build 6.7 · pan zoom</div>
+        <div class="eyebrow">build 6.8 · state repair</div>
         <h2>Extract Studio</h2>
         <p>Document canvas first. Image sits inside the page.</p>
       </div>
       <div class="panelBody">
         <div class="stepCard active">
           <div class="stepTitle"><span class="stepNum">1</span> Canvas size</div>
-          <select class="presetSelect" data-action="preset" style="width:100%">
+          <select class="presetSelect" data-action="preset" style="width:100%" ${state.imageLoaded?"disabled":""}>
             ${Object.entries(presets).map(([k,p])=>`<option value="${k}" ${state.preset===k?"selected":""}>${p.label}</option>`).join("")}
           </select>
-          <div class="hint">Simple sizes for now: Letter, half-letter, index card, square, and free canvas.</div>
+          <div class="hint">${state.imageLoaded?"Canvas size is locked while an image is loaded. Clear the image to choose a different size.":"Simple sizes for now: Letter, half-letter, index card, square, and free canvas."}</div>
         </div>
 
         <div class="stepCard ${state.imageLoaded?"":"active"}">
@@ -628,6 +630,11 @@
   }
 
   function setPageSize(key){
+    if(state.imageLoaded){
+      statusRight.textContent="Clear the loaded image before changing canvas size";
+      render();
+      return;
+    }
     const p=presets[key]||presets.free;
     state.preset=key;
     state.pageW=p.w;
@@ -635,11 +642,9 @@
     page.style.width=p.w+"px";
     page.style.height=p.h+"px";
     page.dataset.label=p.label;
-    if(!state.imageLoaded){
-      canvas.width=p.w;
-      canvas.height=p.h;
-      ctx.clearRect(0,0,p.w,p.h);
-    }
+    canvas.width=p.w;
+    canvas.height=p.h;
+    ctx.clearRect(0,0,p.w,p.h);
     fitPage();
     render();
   }
@@ -749,16 +754,24 @@
         document.querySelectorAll("[data-bind='brush']").forEach(x=>x.textContent=state.brushSize+"px");
         updateBrushCursorSize();
       };
-      if(a==="edge-fit") el.oninput=e=>{
-        state.edgeFit=Number(e.target.value);
-        document.querySelectorAll("[data-bind='edge']").forEach(x=>x.textContent=state.edgeFit>0?"+"+state.edgeFit:state.edgeFit);
-        applyEdgeRefinement();
-      };
-      if(a==="smooth-edge") el.oninput=e=>{
-        state.smoothEdge=Number(e.target.value);
-        document.querySelectorAll("[data-bind='smooth']").forEach(x=>x.textContent=state.smoothEdge);
-        applyEdgeRefinement();
-      };
+      if(a==="edge-fit"){
+        el.onpointerdown=()=>pushHistory();
+        el.onkeydown=()=>pushHistory();
+        el.oninput=e=>{
+          state.edgeFit=Number(e.target.value);
+          document.querySelectorAll("[data-bind='edge']").forEach(x=>x.textContent=state.edgeFit>0?"+"+state.edgeFit:state.edgeFit);
+          applyEdgeRefinement();
+        };
+      }
+      if(a==="smooth-edge"){
+        el.onpointerdown=()=>pushHistory();
+        el.onkeydown=()=>pushHistory();
+        el.oninput=e=>{
+          state.smoothEdge=Number(e.target.value);
+          document.querySelectorAll("[data-bind='smooth']").forEach(x=>x.textContent=state.smoothEdge);
+          applyEdgeRefinement();
+        };
+      }
     });
   }
 
@@ -786,24 +799,47 @@
     render();
   }
 
+  function captureEditorSnapshot(){
+    return {
+      imageData:ctx.getImageData(0,0,canvas.width,canvas.height),
+      baseRemovalMask:cloneMask(state.baseRemovalMask),
+      manualEraseMask:cloneMask(state.manualEraseMask),
+      manualRestoreMask:cloneMask(state.manualRestoreMask),
+      edgeFit:state.edgeFit,
+      smoothEdge:state.smoothEdge
+    };
+  }
+
+  function restoreEditorSnapshot(snapshot){
+    if(!snapshot)return;
+    ctx.putImageData(snapshot.imageData,0,0);
+    state.baseRemovalMask=cloneMask(snapshot.baseRemovalMask);
+    state.manualEraseMask=cloneMask(snapshot.manualEraseMask);
+    state.manualRestoreMask=cloneMask(snapshot.manualRestoreMask);
+    state.edgeFit=snapshot.edgeFit;
+    state.smoothEdge=snapshot.smoothEdge;
+  }
+
   function pushHistory(){
     if(!state.imageLoaded)return;
-    state.history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    state.history.push(captureEditorSnapshot());
     if(state.history.length>25)state.history.shift();
     state.future=[];
   }
 
   function undo(){
     if(!state.history.length||!state.imageLoaded)return;
-    state.future.push(ctx.getImageData(0,0,canvas.width,canvas.height));
-    ctx.putImageData(state.history.pop(),0,0);
+    state.future.push(captureEditorSnapshot());
+    restoreEditorSnapshot(state.history.pop());
+    render();
     statusRight.textContent="Undo";
   }
 
   function redo(){
     if(!state.future.length||!state.imageLoaded)return;
-    state.history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
-    ctx.putImageData(state.future.pop(),0,0);
+    state.history.push(captureEditorSnapshot());
+    restoreEditorSnapshot(state.future.pop());
+    render();
     statusRight.textContent="Redo";
   }
 
@@ -833,6 +869,8 @@
       state.history=[];
       state.future=[];
       state.baseRemovalMask=null;
+      state.manualEraseMask=null;
+      state.manualRestoreMask=null;
       state.edgeFit=0;
       state.smoothEdge=0;
       state.mode=null;
@@ -855,6 +893,8 @@
     state.history=[];
     state.future=[];
     state.baseRemovalMask=null;
+    state.manualEraseMask=null;
+    state.manualRestoreMask=null;
     state.edgeFit=0;
     state.smoothEdge=0;
     state.mode=null;
@@ -906,12 +946,22 @@
     return removed;
   }
 
-
   function ensureBaseMask(){
     if(!state.baseRemovalMask){
       state.baseRemovalMask = new Uint8Array(canvas.width * canvas.height);
     }
     return state.baseRemovalMask;
+  }
+
+  function ensureManualMasks(){
+    const size=canvas.width*canvas.height;
+    if(!state.manualEraseMask||state.manualEraseMask.length!==size){
+      state.manualEraseMask=new Uint8Array(size);
+    }
+    if(!state.manualRestoreMask||state.manualRestoreMask.length!==size){
+      state.manualRestoreMask=new Uint8Array(size);
+    }
+    return {erase:state.manualEraseMask,restore:state.manualRestoreMask};
   }
 
   function addToBaseMask(mask){
@@ -922,14 +972,19 @@
   }
 
   function applyCurrentBaseMask(){
-    if(!state.baseRemovalMask) return;
     const w=canvas.width;
     const h=canvas.height;
-    let mask = cloneMask(state.baseRemovalMask);
+    let mask=state.baseRemovalMask?cloneMask(state.baseRemovalMask):new Uint8Array(w*h);
 
     if(state.edgeFit>0) mask=dilateMask(mask,w,h,state.edgeFit);
     if(state.edgeFit<0) mask=erodeMask(mask,w,h,Math.abs(state.edgeFit));
     if(state.smoothEdge>0) mask=smoothMask(mask,w,h,state.smoothEdge);
+
+    const manual=ensureManualMasks();
+    for(let i=0;i<mask.length;i++){
+      if(manual.restore[i]) mask[i]=0;
+      if(manual.erase[i]) mask[i]=1;
+    }
 
     restoreOriginalThenApplyMask(mask);
   }
@@ -1017,6 +1072,7 @@
     }
 
     pushHistory();
+    ctx.putImageData(state.original,0,0);
 
     const img=ctx.getImageData(0,0,canvas.width,canvas.height);
     const data=img.data;
@@ -1057,6 +1113,8 @@
     });
 
     state.baseRemovalMask=new Uint8Array(combined);
+    state.manualEraseMask=null;
+    state.manualRestoreMask=null;
     state.edgeFit=0;
     state.smoothEdge=0;
     applyCurrentBaseMask();
@@ -1105,14 +1163,22 @@
     const p=getPoint(e);if(!p)return;
     const img=ctx.getImageData(0,0,canvas.width,canvas.height);
     const data=img.data,original=state.original?state.original.data:null;
+    const manual=ensureManualMasks();
     const r=state.brushSize,r2=r*r;
     for(let y=Math.max(0,p.y-r);y<=Math.min(canvas.height-1,p.y+r);y++){
       for(let x=Math.max(0,p.x-r);x<=Math.min(canvas.width-1,p.x+r);x++){
         const dx=x-p.x,dy=y-p.y;
         if(dx*dx+dy*dy>r2)continue;
-        const idx=(y*canvas.width+x)*4;
-        if(state.mode==="erase"){data[idx+3]=0}
+        const pixel=y*canvas.width+x;
+        const idx=pixel*4;
+        if(state.mode==="erase"){
+          manual.erase[pixel]=1;
+          manual.restore[pixel]=0;
+          data[idx+3]=0;
+        }
         else if(state.mode==="restore"&&original){
+          manual.restore[pixel]=1;
+          manual.erase[pixel]=0;
           data[idx]=original[idx];data[idx+1]=original[idx+1];data[idx+2]=original[idx+2];data[idx+3]=original[idx+3];
         }
       }
@@ -1274,6 +1340,8 @@
   buildStudioButtons();
   setupEvents();
   setPageSize("free");
+  document.documentElement.dataset.imageLabReady="true";
+  document.documentElement.dataset.imageLabBuild="6.8";
 })();
 </script>
 </body>

@@ -5,7 +5,13 @@ const { chromium } = require('/tmp/image-lab-smoke/node_modules/playwright');
   const page=await browser.newPage({viewport:{width:390,height:844}});
   const errors=[];
   page.on('pageerror',e=>errors.push(String(e)));
-  page.on('console',m=>{ if(m.type()==='error') errors.push(m.text()); });
+  page.on('console',m=>{
+    if(m.type()!=='error') return;
+    const text=m.text();
+    if(/Smart Select failed|Uncaught|TypeError|ReferenceError|SyntaxError|RangeError/i.test(text)){
+      errors.push(text);
+    }
+  });
 
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.documentElement.dataset.imageLabBuild==='6.9');

@@ -23,11 +23,17 @@ const { chromium } = require('/tmp/image-lab-smoke/node_modules/playwright');
   if(!box) throw new Error('Canvas not visible');
   await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
 
-  await page.waitForFunction(
-    ()=>document.querySelector('#page').classList.contains('hasSmartSelection'),
-    null,
-    {timeout:120000}
-  );
+  await page.waitForFunction(()=>{
+    const status=document.querySelector('#statusRight').textContent;
+    return document.querySelector('#page').classList.contains('hasSmartSelection') || status.includes('failed');
+  },null,{timeout:120000});
+
+  const status=await page.locator('#statusRight').textContent();
+  const selected=await page.locator('#page').evaluate(el=>el.classList.contains('hasSmartSelection'));
+  if(!selected){
+    throw new Error(`Smart Select did not produce a mask. status=${status}; browserErrors=${errors.join(' | ')}`);
+  }
+
   await page.waitForFunction(()=>{
     const b=document.querySelector('[data-action="smart-keep"]');
     return b&&!b.disabled;
